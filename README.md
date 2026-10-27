@@ -1,4 +1,4 @@
-# Access Intelligence Platform
+    # Access Intelligence Platform
 
 A professional, legal public-offer monitoring platform for AI tools, SaaS subscriptions, student programs, startup credits, and free-tier promotions.
 

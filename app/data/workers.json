@@ -1,0 +1,308 @@
+{
+  "nora@example.com": {
+    "id": "worker-1",
+    "name": "Nora Worker",
+    "email": "nora@example.com",
+    "password_hash": "45d9147f331e13bb449f0b7dd91413d3:e04430d80ddfc55c5ffda9220de2cd105647686cc276783b90f640fe3c1a2021",
+    "role": "researcher",
+    "token": "verity_bDEf5VgzRnQDVM4UgXcu3035uyc3K8yU",
+    "created_at": "2026-10-27T05:51:07.022516+00:00"
+  },
+  "secure@example.com": {
+    "id": "worker-2",
+    "name": "Secure Worker",
+    "email": "secure@example.com",
+    "password_hash": "1e81e650a88200e02ce90a405ef517c7:8190c2452f6ee51a35011ff5ddaa274c74655e0997d7bdd57e38ffbf904f48cc",
+    "role": "analyst",
+    "token": "verity_JL9CwY1_ISLR5hWaGqSe8-BTgx2inLz9",
+    "created_at": "2026-10-27T05:51:08.468466+00:00"
+  },
+  "nora-ed13efa8@example.com": {
+    "id": "worker-3",
+    "name": "Nora Worker",
+    "email": "nora-ed13efa8@example.com",
+    "password_hash": "7c3e35f8a2cb46a129814048752367a7:ad276a22b999761d0a0e8a7e9fa8cdd052866e4127f57d5f0cfdba657479872e",
+    "role": "researcher",
+    "token": "verity_yjhaf8zKCJ0pYHe8jVGd7S06UbZW6QPC",
+    "created_at": "2026-10-27T05:53:08.555052+00:00"
+  },
+  "nora-login-2ba9276c@example.com": {
+    "id": "worker-4",
+    "name": "Nora Worker",
+    "email": "nora-login-2ba9276c@example.com",
+    "password_hash": "83a9bbd6df9c9c02476286668ef083bb:788e607a82079f114b71fb98d9fab0771656e5c2c3c01b2cd644c3ca7ff31bc8",
+    "role": "researcher",
+    "token": "verity_oK1fNCHzqRFO78VVfwClHeeEhKBbQjJv",
+    "created_at": "2026-10-27T05:53:09.018443+00:00"
+  },
+  "worker-review-0c0c3047@example.com": {
+    "id": "worker-5",
+    "name": "Review Worker",
+    "email": "worker-review-0c0c3047@example.com",
+    "password_hash": "e95a02f23b608dff40ab9b14d034a0b4:68464610270c4a3fbf7221c73bb96eab3fda98bf7c59d9c965653ebf531808e5",
+    "role": "researcher",
+    "token": "verity_TM_Kl7EwtgXCplYsx9uT3g1odbQDFTPJ",
+    "created_at": "2026-10-27T05:53:09.821034+00:00"
+  },
+  "secure-9d0e2aaa@example.com": {
+    "id": "worker-6",
+    "name": "Secure Worker",
+    "email": "secure-9d0e2aaa@example.com",
+    "password_hash": "3e573cb3f3e7e927e108063edbcbc64b:b1293ccd0fc539a7e4c8fcaa4daee2e0eb219800635f3325551a86c7181fb3e9",
+    "role": "analyst",
+    "token": "verity_zaxk-Tw4J3ECprYMBhJVSEZ-uV6tvpFf",
+    "created_at": "2026-10-27T05:53:11.341697+00:00"
+  },
+  "nora-48b8ffec@example.com": {
+    "id": "worker-7",
+    "name": "Nora Worker",
+    "email": "nora-48b8ffec@example.com",
+    "password_hash": "f9adf385ca49715d904541327253d70d:d4c1d7f91332f28afa25d92064d7f3fde6635b71576944ff661aa6bfda731f7b",
+    "role": "researcher",
+    "token": "verity_pYRgWHtm-tAU2xF5FhYU57FUbZON0Bt2",
+    "created_at": "2026-10-27T05:59:43.875573+00:00"
+  },
+  "nora-login-39cc3cca@example.com": {
+    "id": "worker-8",
+    "name": "Nora Worker",
+    "email": "nora-login-39cc3cca@example.com",
+    "password_hash": "3a008ddde192e2bfbf25cb094412b9c6:96403b351b7a7d81b5dbd10a33ee513089a6f7aa36915218bf43247697de975d",
+    "role": "researcher",
+    "token": "verity_APNLyrrfMR7OWzQXZOSnr2fs1eYW8bxp",
+    "created_at": "2026-10-27T05:59:44.502683+00:00"
+  },
+  "worker-review-a3489bf9@example.com": {
+    "id": "worker-9",
+    "name": "Review Worker",
+    "email": "worker-review-a3489bf9@example.com",
+    "password_hash": "eda570b1f4dd3562ff0cf61e1a3e7a52:0ea67442490d0687a5a1d044ee826e90857f42c55b77b8c1acc067abcaf3618b",
+    "role": "researcher",
+    "token": "verity_rjig8SZ760-uTTC3T6jvVJK9NFTRekdH",
+    "created_at": "2026-10-27T05:59:45.434889+00:00"
+  },
+  "secure-db2b3ca4@example.com": {
+    "id": "worker-10",
+    "name": "Secure Worker",
+    "email": "secure-db2b3ca4@example.com",
+    "password_hash": "a2c09612a1ba234c1a59da228bca3999:2f8d893c76034caa5f67c56a8f9473520c52a8c4f1603fd32d284062f5afc1dd",
+    "role": "analyst",
+    "token": "verity_67kOVO5YhGYyPJfZKh7F7uk2aaSp98Cz",
+    "created_at": "2026-10-27T05:59:46.462115+00:00"
+  },
+  "nora-57e1bfc5@example.com": {
+    "id": "worker-11",
+    "name": "Nora Worker",
+    "email": "nora-57e1bfc5@example.com",
+    "password_hash": "e5c07a1b50e5e931e35c080ebdad164a:92b3ebdc1926f33b35ea75f10910f61ff63a673cc4cad47d9085ccee58e172b7",
+    "role": "researcher",
+    "token": "verity_fMi8R1B2Gs3Z9l7KApVbiDoDGMxKQjGr",
+    "created_at": "2026-10-27T06:01:40.662194+00:00"
+  },
+  "nora-login-f7cbb02a@example.com": {
+    "id": "worker-12",
+    "name": "Nora Worker",
+    "email": "nora-login-f7cbb02a@example.com",
+    "password_hash": "b67a7bbf6b15f7c1bcf4ad302444aef6:b2225dfb99feaef5b50777c067178c0ec22c388c0d8cb3282392a9f94966a1ec",
+    "role": "researcher",
+    "token": "verity_dVIx4OuzVogZDCHt6Hd4UoRRdYEtNBpY",
+    "created_at": "2026-10-27T06:01:42.305468+00:00"
+  },
+  "worker-review-faf3f981@example.com": {
+    "id": "worker-13",
+    "name": "Review Worker",
+    "email": "worker-review-faf3f981@example.com",
+    "password_hash": "3799b0c662bd4d8c7497f3251275c53c:c5cd1edfcf9ff9a245ed24c350957bb4e28162a10ca91f86978fae11e8b6e29b",
+    "role": "researcher",
+    "token": "verity_oSAkLTZOSzgIJQ9-UiLPBE_MH7spKoBr",
+    "created_at": "2026-10-27T06:01:45.909073+00:00"
+  },
+  "secure-8fbffa8e@example.com": {
+    "id": "worker-14",
+    "name": "Secure Worker",
+    "email": "secure-8fbffa8e@example.com",
+    "password_hash": "452e1a5065bc7e3dd2d197618d72f435:78054e5e47b3359aeb7e8fa4fab4d113c4c325d4ac0ef9857dd402f3e32ed967",
+    "role": "analyst",
+    "token": "verity_Q1yf97g7RXh0e_mPmO4hCEQirCuf4nC1",
+    "created_at": "2026-10-27T06:01:48.011909+00:00"
+  },
+  "nora-f414d5cd@example.com": {
+    "id": "worker-15",
+    "name": "Nora Worker",
+    "email": "nora-f414d5cd@example.com",
+    "password_hash": "3bc14fd2450701c234baee0f4f11c186:068af25c52d5686b47f27e9d67f676e25812f00b602f5531b8e1fe444c469c58",
+    "role": "researcher",
+    "token": "verity_ZNn-xgxAWCaxCDtkKYw_a-QFywAg4v6k",
+    "created_at": "2026-10-27T06:04:00.100849+00:00"
+  },
+  "nora-login-40641aa3@example.com": {
+    "id": "worker-16",
+    "name": "Nora Worker",
+    "email": "nora-login-40641aa3@example.com",
+    "password_hash": "93d354dfff5f7735cb9a9ed90bc2295d:a85c7bc37b408b44d25cfabc053716d9e623360ea723a67c990638abcb48efc0",
+    "role": "researcher",
+    "token": "verity_RKB6JILF6xsvDlJOVs9jcybbsr3mVaKK",
+    "created_at": "2026-10-27T06:04:00.644220+00:00"
+  },
+  "worker-review-370e3178@example.com": {
+    "id": "worker-17",
+    "name": "Review Worker",
+    "email": "worker-review-370e3178@example.com",
+    "password_hash": "140c756fdfc05cab22c240ec9bbb96ef:e3af0e830f2833f79b173f7c747240b2f6f890f159c781e3e1bc38d957ff9664",
+    "role": "researcher",
+    "token": "verity_UnSGCIB2cXIuW5j6latsBbSuCTkGJfAe",
+    "created_at": "2026-10-27T06:04:01.756151+00:00"
+  },
+  "secure-88893c2e@example.com": {
+    "id": "worker-18",
+    "name": "Secure Worker",
+    "email": "secure-88893c2e@example.com",
+    "password_hash": "e7c99a0a16f36a25a56b5167813a6a37:b91043435a9303fab4bd56e4bad744a112e2ad8a12f22e21dee396d7a80ece12",
+    "role": "analyst",
+    "token": "verity_SSsKxdjn4U0nnL1dyEK8391q7Bc-DUU1",
+    "created_at": "2026-10-27T06:04:02.860889+00:00"
+  },
+  "nora-1af446c4@example.com": {
+    "id": "worker-19",
+    "name": "Nora Worker",
+    "email": "nora-1af446c4@example.com",
+    "password_hash": "12e26b0b566dad206fe2db6ecc3953db:e9a4058222d62f48fb11cb4699ff2c5908c3b21450a81314d41729ef49f067db",
+    "role": "researcher",
+    "token": "verity_-HZNOpsTLk1VTT74n94JwI2VpZD5BYrJ",
+    "created_at": "2026-10-27T06:06:12.989788+00:00"
+  },
+  "nora-login-951ba8b2@example.com": {
+    "id": "worker-20",
+    "name": "Nora Worker",
+    "email": "nora-login-951ba8b2@example.com",
+    "password_hash": "cc30948f3026b9ecbc6a6c7b75e3b681:307f9c10793a756849e1c9568aa596898d579a5f191377b23f64e4862184c773",
+    "role": "researcher",
+    "token": "verity_4J2xsr3CLXojsJip8D1VN0KlwFqo2RLF",
+    "created_at": "2026-10-27T06:06:13.530530+00:00"
+  },
+  "worker-review-61680f7f@example.com": {
+    "id": "worker-21",
+    "name": "Review Worker",
+    "email": "worker-review-61680f7f@example.com",
+    "password_hash": "8de3ddbd8034173eeafefc2bf25b1880:f94b4f9aa84fbde52ff591997e184027974420cf85e2b53370acd08b4d30c2cd",
+    "role": "researcher",
+    "token": "verity_G3yzcjCvoGWpW87_12NvB27NKksGsWf8",
+    "created_at": "2026-10-27T06:06:14.500854+00:00"
+  },
+  "secure-ce2e5e56@example.com": {
+    "id": "worker-22",
+    "name": "Secure Worker",
+    "email": "secure-ce2e5e56@example.com",
+    "password_hash": "06a61c12173d6621b2e5451b9ee4c81e:35a65ba93b45d749912622e12165053257dc3bea342328a6d8fccac6cd5ab161",
+    "role": "analyst",
+    "token": "verity_KRXhEdnZ_nXWnIOmlbiDkyqPaBW_gJB-",
+    "created_at": "2026-10-27T06:06:16.635985+00:00"
+  },
+  "nora-3a0db42e@example.com": {
+    "id": "worker-23",
+    "name": "Nora Worker",
+    "email": "nora-3a0db42e@example.com",
+    "password_hash": "694e977046c26344f793da2393138bdf:ae4ec0718b09ca8dcc4873309fae8dba248811b96926b0cae8ffc248e9bb52bf",
+    "role": "researcher",
+    "token": "verity_l9wRiWOvMgWYbX0cikTMxhkj74QT6aRV",
+    "created_at": "2026-10-27T06:10:59.885461+00:00"
+  },
+  "nora-login-e2f4171a@example.com": {
+    "id": "worker-24",
+    "name": "Nora Worker",
+    "email": "nora-login-e2f4171a@example.com",
+    "password_hash": "741bdc442336d60f41a67189f874c78d:c9d989e1b70e933de973a6e0c515cd5f5d4ba7546c33835220dde51ee49429a9",
+    "role": "researcher",
+    "token": "verity_2TGWgNhNvx_9y-x_KhS0rgbM-JO7F1K6",
+    "created_at": "2026-10-27T06:11:00.361682+00:00"
+  },
+  "worker-review-a383cc89@example.com": {
+    "id": "worker-25",
+    "name": "Review Worker",
+    "email": "worker-review-a383cc89@example.com",
+    "password_hash": "1d783cbcfdaf7fc987a56f0ae8daefcf:736796d69950579babad3aabe8d533e0d40cb12b8f5010506e0c43b2f25833ba",
+    "role": "researcher",
+    "token": "verity_9PmfcRZutZa7FZizpWVkqV083FfdHMKJ",
+    "created_at": "2026-10-27T06:11:01.323968+00:00"
+  },
+  "secure-648b6a50@example.com": {
+    "id": "worker-26",
+    "name": "Secure Worker",
+    "email": "secure-648b6a50@example.com",
+    "password_hash": "093bfcdcea1078cb9985b3dbde0b073d:b1fbaa9935ff536cc907b095c3c66be8b82606edbf60ebc161f690316da50101",
+    "role": "analyst",
+    "token": "verity_fiUysaDXa6PkYzEqH4s_nfbFKNbpB4QT",
+    "created_at": "2026-10-27T06:11:02.563706+00:00"
+  },
+  "nora-0c047d4d@example.com": {
+    "id": "worker-27",
+    "name": "Nora Worker",
+    "email": "nora-0c047d4d@example.com",
+    "password_hash": "e9e356da20d42a148287ea57468a43b6:6c33fb6f0ccb68cff38e16762cb63ef0fe530e098c8c0e5622ec0b20b0c421e4",
+    "role": "researcher",
+    "token": "verity_hyabvaaPcx7cs0oA7QgqDMpQ2aZBjfle",
+    "created_at": "2026-10-27T06:16:20.032046+00:00"
+  },
+  "nora-login-7d47641f@example.com": {
+    "id": "worker-28",
+    "name": "Nora Worker",
+    "email": "nora-login-7d47641f@example.com",
+    "password_hash": "36bb62e2543b2194ae61deba656294bb:ba9a8d0e9b6db039304472d2be6968313fffcc04183505d1c5c4e82c57fb17fc",
+    "role": "researcher",
+    "token": "verity_GIHQUcVZFfBa9c3K0efoGBHhkwhXkKD5",
+    "created_at": "2026-10-27T06:16:20.461808+00:00"
+  },
+  "worker-review-acac6621@example.com": {
+    "id": "worker-29",
+    "name": "Review Worker",
+    "email": "worker-review-acac6621@example.com",
+    "password_hash": "6ec9d4c08136a874d03845437165aa7e:2195e13d17d5523183df92c838a3577e66c1720d646a3815e32367b49bdbd188",
+    "role": "researcher",
+    "token": "verity_zUovIs-Ud-yKdyMrhIzZpztmzqDy-SDN",
+    "created_at": "2026-10-27T06:16:21.898656+00:00"
+  },
+  "secure-2f27a6b0@example.com": {
+    "id": "worker-30",
+    "name": "Secure Worker",
+    "email": "secure-2f27a6b0@example.com",
+    "password_hash": "6e6ba882ed9fe5263b211366d6fa4c1b:5c8648aa58ecb12a9cf991bfadf4d8733e50b58b57f2b023834ed6e1cea4f2a2",
+    "role": "analyst",
+    "token": "verity_YPizKyQIUucPuRLJSx7DxYKRnqE0KaGr",
+    "created_at": "2026-10-27T06:16:23.440384+00:00"
+  },
+  "nora-1469307e@example.com": {
+    "id": "worker-31",
+    "name": "Nora Worker",
+    "email": "nora-1469307e@example.com",
+    "password_hash": "44090f183851a955a7f18613f374b977:170923965ca4eb4d62a1ea597e41d82ab6b098026608dc270bd9ccab766e0aee",
+    "role": "researcher",
+    "token": "verity_CUll_m2EQP7Ou5qH_08KKe4TuF1mZa5S",
+    "created_at": "2026-10-27T06:22:58.256708+00:00"
+  },
+  "nora-login-c4814ce9@example.com": {
+    "id": "worker-32",
+    "name": "Nora Worker",
+    "email": "nora-login-c4814ce9@example.com",
+    "password_hash": "b7da4ea28216454449c1bba332784e1a:04b0daa29485f8af9fb3d6f41ad893068f61fb7106c6821c0bf742d1831c302e",
+    "role": "researcher",
+    "token": "verity_SHwa5uI2zeAqgvn6WU3_T1Ediz3nfDED",
+    "created_at": "2026-10-27T06:22:58.641183+00:00"
+  },
+  "worker-review-fb0ec241@example.com": {
+    "id": "worker-33",
+    "name": "Review Worker",
+    "email": "worker-review-fb0ec241@example.com",
+    "password_hash": "e0ec9f9e87c8e52bf26d68f3949e6fda:42159e18373a5744eef3a711cccb17d15b1467065cab6e33cf12a9a256f26e33",
+    "role": "researcher",
+    "token": "verity_W_Mx0LXczTXu6CzWHuI46fLmH5ThBH7X",
+    "created_at": "2026-10-27T06:22:59.611363+00:00"
+  },
+  "secure-4d8bb648@example.com": {
+    "id": "worker-34",
+    "name": "Secure Worker",
+    "email": "secure-4d8bb648@example.com",
+    "password_hash": "6062e2990dcee328d9976d95b1a5d665:ae784f80f39569342d74fc63586d56791012024da0f3a41962ab04f78a183234",
+    "role": "analyst",
+    "token": "verity_rVQkTY8p-mllmP5OCp13qweqsGFaO6GU",
+    "created_at": "2026-10-27T06:23:00.810326+00:00"
+  }
+}
