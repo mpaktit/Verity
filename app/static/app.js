@@ -236,14 +236,15 @@ async function loadDashboard() {
   const insightsGrid = document.getElementById('insightsGrid');
   const searchInput = document.getElementById('searchInput');
 
-  const [summaryResponse, offersResponse, providersResponse, researchResponse, alertsResponse, insightsResponse, analyticsResponse] = await Promise.all([
+  const [summaryResponse, offersResponse, providersResponse, researchResponse, alertsResponse, insightsResponse, analyticsResponse, sourcesResponse] = await Promise.all([
     fetch('/api/summary'),
     fetch('/api/offers'),
     fetch('/api/providers'),
     fetch('/api/research'),
     fetch('/api/alerts'),
     fetch('/api/insights'),
-    fetch('/api/analytics')
+    fetch('/api/analytics'),
+    fetch('/api/sources')
   ]);
 
   const summary = await summaryResponse.json();
@@ -253,6 +254,7 @@ async function loadDashboard() {
   const alerts = await alertsResponse.json();
   const insights = await insightsResponse.json();
   const analytics = await analyticsResponse.json();
+  const sources = await sourcesResponse.json();
 
   const renderStats = () => {
     const stats = [
@@ -360,11 +362,15 @@ async function loadDashboard() {
   };
 
   const renderResearch = () => {
+    const checked = sources.filter((source) => source.status === 'checked').length;
+    const failed = sources.filter((source) => source.status !== 'checked' && source.status !== 'pending').length;
     researchSummary.innerHTML = `
       <div class="summary-row"><span>Total sources</span><strong>${research.total_sources}</strong></div>
       <div class="summary-row"><span>Active providers</span><strong>${research.active_providers}</strong></div>
       <div class="summary-row"><span>Coverage</span><strong>${research.coverage_percent}%</strong></div>
       <div class="summary-row"><span>Needs review</span><strong>${research.needs_review}</strong></div>
+      <div class="summary-row"><span>Checked sources</span><strong>${checked}</strong></div>
+      <div class="summary-row"><span>Source errors</span><strong>${failed}</strong></div>
       <div class="summary-row"><span>Last scan</span><strong>${research.last_scan}</strong></div>
     `;
   };
