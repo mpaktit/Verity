@@ -6,121 +6,173 @@
     <title>Verity | Public Offer Intelligence</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
-    <div class="console">
-      <header class="top-bar">
-        <div class="brand">
-          <div class="brand-mark">Verity</div>
-          <div class="brand-sub">Public offer intelligence</div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-wrap">
+          <div class="brand-mark">V</div>
+          <div>
+            <div class="brand-name">Verity</div>
+            <div class="brand-sub">Access intelligence</div>
+          </div>
         </div>
-        <div class="top-actions">
-          <input id="searchInput" class="search" type="text" placeholder="Search providers or offers" />
-          <button id="runCheckBtn" class="btn btn-primary">Run scan</button>
-        </div>
-        <div id="authStatus" class="auth-status">
+
+        <nav class="nav" aria-label="Sidebar navigation">
+          <button class="nav-item active">Overview</button>
+          <button class="nav-item">Desk</button>
+          <button class="nav-item">Coverage</button>
+          <button class="nav-item">Signals</button>
+          <button class="nav-item">Review</button>
+        </nav>
+
+        <div id="authStatus" class="auth-status card-surface">
           <div class="muted-label">Session</div>
           <div class="status-pill offline">Not signed in</div>
         </div>
-      </header>
+      </aside>
 
-      <section id="authPanel" class="panel auth-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Worker access</p>
-            <h2>Join the verification desk</h2>
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-copy">
+            <div class="topbar-meta">
+              <span class="meta-badge">Live source tracking</span>
+              <span class="meta-badge subtle">Updated 2m ago</span>
+            </div>
+            <p class="eyebrow">Verification dashboard</p>
+            <h1>Find what is public, visible, and credible.</h1>
+            <p class="topbar-subtitle">Track public access programs, eligibility signals, and review status across the AI and SaaS ecosystem before making a decision.</p>
           </div>
-        </div>
-        <div class="auth-grid">
-          <form id="loginForm" class="auth-form">
-            <h3>Login</h3>
-            <input type="email" name="email" placeholder="Email" required />
-            <input type="password" name="password" placeholder="Password" required />
-            <button type="submit" class="btn btn-primary">Enter workspace</button>
-          </form>
-          <form id="signupForm" class="auth-form">
-            <h3>Sign up</h3>
-            <input type="text" name="name" placeholder="Full name" required />
-            <input type="email" name="email" placeholder="Email" required />
-            <input type="password" name="password" placeholder="Password" required />
-            <select name="role">
-              <option value="researcher">Researcher</option>
-              <option value="reviewer">Reviewer</option>
-              <option value="analyst">Analyst</option>
-            </select>
-            <button type="submit" class="btn btn-secondary">Create account</button>
-          </form>
-        </div>
-      </section>
+          <div class="top-actions">
+            <input id="searchInput" type="text" class="search-input" placeholder="Search providers or offers" />
+            <button id="runCheckBtn" class="primary-btn">Run verification</button>
+          </div>
+        </header>
 
-      <section id="workspacePanel" class="workspace-shell hidden">
-        <div class="panel workspace-overview">
+        <section class="hero-strip" aria-label="Platform overview metrics">
+          <article class="hero-stat">
+            <span class="hero-label">Verified coverage</span>
+            <strong>94%</strong>
+            <small>of tracked public offers</small>
+          </article>
+          <article class="hero-stat accent">
+            <span class="hero-label">Cross-source checks</span>
+            <strong>18</strong>
+            <small>live verification signals</small>
+          </article>
+          <article class="hero-stat">
+            <span class="hero-label">Review throughput</span>
+            <strong>6.4x</strong>
+            <small>faster triage velocity</small>
+          </article>
+        </section>
+
+        <section id="authPanel" class="panel auth-panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Worker workspace</p>
-              <h2 id="workerTitle">Your verification board</h2>
+              <p class="eyebrow">Worker access</p>
+              <h2>Join the verification desk</h2>
             </div>
-            <button id="signOutBtn" class="btn btn-ghost">Sign out</button>
           </div>
-          <div id="workspaceSummary" class="workspace-summary"></div>
-        </div>
-        <div class="panel tasks-panel">
+
+          <div class="auth-grid">
+            <form id="loginForm" class="auth-form">
+              <h3>Login</h3>
+              <input type="email" name="email" placeholder="Email" required />
+              <input type="password" name="password" placeholder="Password" required />
+              <button type="submit" class="primary-btn">Enter workspace</button>
+            </form>
+
+            <form id="signupForm" class="auth-form">
+              <h3>Sign up</h3>
+              <input type="text" name="name" placeholder="Full name" required />
+              <input type="email" name="email" placeholder="Email" required />
+              <input type="password" name="password" placeholder="Password" required />
+              <select name="role">
+                <option value="researcher">Researcher</option>
+                <option value="reviewer">Reviewer</option>
+                <option value="analyst">Analyst</option>
+              </select>
+              <button type="submit" class="secondary-btn">Create account</button>
+            </form>
+          </div>
+        </section>
+
+        <section id="workspacePanel" class="workspace-shell hidden">
+          <div class="panel workspace-overview">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Worker workspace</p>
+                <h2 id="workerTitle">Your verification board</h2>
+              </div>
+              <button id="signOutBtn" class="ghost-btn">Sign out</button>
+            </div>
+            <div id="workspaceSummary" class="workspace-summary"></div>
+          </div>
+
+          <div class="panel tasks-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Live queue</p>
+                <h2>Verification pipeline</h2>
+              </div>
+            </div>
+            <div id="taskList" class="task-list"></div>
+          </div>
+        </section>
+
+        <section id="insightsGrid" class="insights-grid"></section>
+
+        <section class="stats-grid" id="statsGrid"></section>
+
+        <section class="panel split-panel">
+          <div>
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Provider coverage</p>
+                <h2>Source coverage</h2>
+              </div>
+              <span class="pill muted">Live scan</span>
+            </div>
+            <div id="providersGrid" class="providers-grid"></div>
+          </div>
+
+          <div class="research-card">
+            <p class="eyebrow">Verification status</p>
+            <h3 id="researchHeadline">Coverage overview</h3>
+            <div id="researchSummary" class="research-summary"></div>
+          </div>
+        </section>
+
+        <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Live queue</p>
-              <h2>Verification pipeline</h2>
+              <p class="eyebrow">Tracked programs</p>
+              <h2>Current public offers</h2>
             </div>
+            <span class="pill muted">Updated live</span>
           </div>
-          <div id="taskList" class="task-list"></div>
-        </div>
-      </section>
+          <div id="offersGrid" class="offers-grid"></div>
+        </section>
 
-      <section id="insightsGrid" class="insights-grid"></section>
-      <section id="statsGrid" class="stats-grid"></section>
-
-      <section class="panel split-panel">
-        <div>
+        <section class="panel alerts-panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Provider coverage</p>
-              <h2>Source coverage</h2>
+              <p class="eyebrow">Signals</p>
+              <h2>Priority monitoring</h2>
             </div>
+            <span class="pill muted">Human review</span>
           </div>
-          <div id="providersGrid" class="providers-grid"></div>
-        </div>
-        <div class="research-card">
-          <p class="eyebrow">Verification status</p>
-          <h3>Coverage overview</h3>
-          <div id="researchSummary" class="research-summary"></div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Tracked programs</p>
-            <h2>Current public offers</h2>
-          </div>
-        </div>
-        <div id="offersGrid" class="offers-grid"></div>
-      </section>
-
-      <section class="panel alerts-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Signals</p>
-            <h2>Priority monitoring</h2>
-          </div>
-        </div>
-        <div id="alertsGrid" class="alerts-grid"></div>
-      </section>
+          <div id="alertsGrid" class="alerts-grid"></div>
+        </section>
+      </main>
     </div>
 
     <div id="providerModal" class="modal hidden" aria-hidden="true">
       <div class="modal-backdrop" data-close="true"></div>
-      <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="providerModalTitle">
         <button type="button" class="modal-close" aria-label="Close provider detail">×</button>
         <div id="providerModalContent"></div>
       </div>
