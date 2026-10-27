@@ -236,7 +236,7 @@ async function loadDashboard() {
   const insightsGrid = document.getElementById('insightsGrid');
   const searchInput = document.getElementById('searchInput');
 
-  const [summaryResponse, offersResponse, providersResponse, researchResponse, alertsResponse, insightsResponse, analyticsResponse, sourcesResponse] = await Promise.all([
+  const [summaryResponse, offersResponse, providersResponse, researchResponse, alertsResponse, insightsResponse, analyticsResponse, sourcesResponse, logsResponse] = await Promise.all([
     fetch('/api/summary'),
     fetch('/api/offers'),
     fetch('/api/providers'),
@@ -244,7 +244,8 @@ async function loadDashboard() {
     fetch('/api/alerts'),
     fetch('/api/insights'),
     fetch('/api/analytics'),
-    fetch('/api/sources')
+    fetch('/api/sources'),
+    fetch('/api/audit', { headers: { Authorization: `Bearer ${getStoredToken()}` } })
   ]);
 
   const summary = await summaryResponse.json();
@@ -255,6 +256,7 @@ async function loadDashboard() {
   const insights = await insightsResponse.json();
   const analytics = await analyticsResponse.json();
   const sources = await sourcesResponse.json();
+  const logs = logsResponse.ok ? await logsResponse.json() : [];
 
   const renderStats = () => {
     const stats = [
@@ -324,6 +326,21 @@ async function loadDashboard() {
         <div class="alert-title">${alert.title}</div>
         <div class="alert-message">${alert.message}</div>
         <span class="alert-severity ${alert.severity}">${alert.severity}</span>
+      </article>
+    `).join('');
+  };
+
+  const renderLogs = () => {
+    const logsGrid = document.getElementById('logsGrid');
+    if (!logsGrid) return;
+    if (!logs || !logs.length) {
+      logsGrid.innerHTML = '<div class="alert-card"><div class="alert-message">No activity recorded yet.</div></div>';
+      return;
+    }
+    logsGrid.innerHTML = logs.map((entry) => `
+      <article class="alert-card">
+        <div class="alert-title">${entry.action}</div>
+        <div class="alert-message">${entry.entity_type} ${entry.entity_id || ''} at ${entry.created_at}</div>
       </article>
     `).join('');
   };
@@ -418,6 +435,7 @@ async function loadDashboard() {
   renderResearch();
   renderAnalytics();
   renderAlerts();
+  renderLogs();
   renderOffers();
 
   searchInput.addEventListener('input', filterDashboard);
