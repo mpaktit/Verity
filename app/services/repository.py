@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from app.data.alerts import ALERT_LIBRARY
 from app.data.offers import OFFER_LIBRARY
 from app.data.providers import PROVIDER_LIBRARY
+from app.data.sources import SOURCE_CATALOG
 from app.db import get_connection
 
 
@@ -27,12 +28,16 @@ def seed_reference_data():
                      provider["source_count"], provider["signal"], provider["notes"],
                      provider["last_scan"], _now(), _now()),
                 )
-                for source in provider.get("sources", []):
-                    conn.execute(
-                        """INSERT INTO sources (id, provider_id, source_type, url, last_checked_at, status, created_at, updated_at)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                        (f"source-{uuid.uuid4().hex[:8]}", provider["id"], source, source, provider["last_scan"], "tracked", _now(), _now()),
-                    )
+
+        source_count = conn.execute("SELECT COUNT(*) FROM sources").fetchone()[0]
+        if source_count == 0:
+            for source in SOURCE_CATALOG:
+                conn.execute(
+                    """INSERT INTO sources (id, provider_id, source_type, url, last_checked_at, status, created_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (f"source-{uuid.uuid4().hex[:8]}", source["provider_id"], source["source_type"], source["url"],
+                     None, "pending", _now(), _now()),
+                )
 
         offer_count = conn.execute("SELECT COUNT(*) FROM offers").fetchone()[0]
         if offer_count == 0:

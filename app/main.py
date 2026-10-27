@@ -26,6 +26,8 @@ from app.services.research import (
     submit_review,
 )
 
+from app.services.monitor import scan_sources
+
 app = FastAPI(
     title='Access Intelligence Platform',
     description='Public offer monitoring platform for AI and SaaS free access opportunities.',
@@ -101,9 +103,11 @@ async def analytics():
     return get_analytics()
 
 
-@app.get('/api/sources')
-async def sources():
-    return get_sources()
+@app.post('/api/monitor/run')
+async def monitor_run(payload: dict | None = None, authorization: str | None = Header(default=None)):
+    resolve_token(authorization)
+    provider_id = (payload or {}).get('provider_id')
+    return scan_sources(provider_id)
 
 
 @app.get('/api/audit')
