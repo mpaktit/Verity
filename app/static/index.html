@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Access Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-wrap">
+          <div class="brand-mark">AI</div>
+          <div>
+            <div class="brand-name">Access Intelligence</div>
+            <div class="brand-sub">Public offer monitor</div>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item active">Overview</button>
+          <button class="nav-item">Offers</button>
+          <button class="nav-item">Validation</button>
+          <button class="nav-item">Alerts</button>
+          <button class="nav-item">Settings</button>
+        </nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Monitoring dashboard</p>
+            <h1>AI access and free-credit intelligence</h1>
+          </div>
+          <button class="primary-btn">Run verification</button>
+        </header>
+
+        <section class="stats-grid" id="statsGrid"></section>
+
+        <section class="panel split-panel">
+          <div>
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Provider coverage</p>
+                <h2>Research sources</h2>
+              </div>
+              <span class="pill muted">Live scan</span>
+            </div>
+            <div id="providersGrid" class="providers-grid"></div>
+          </div>
+
+          <div class="research-card">
+            <p class="eyebrow">Monitoring status</p>
+            <h3 id="researchHeadline">Coverage overview</h3>
+            <div id="researchSummary" class="research-summary"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Tracked programs</p>
+              <h2>Latest public offers</h2>
+            </div>
+            <span class="pill muted">Updated live</span>
+          </div>
+          <div id="offersGrid" class="offers-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
