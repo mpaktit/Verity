@@ -1,3 +1,5 @@
+import asyncio
+import threading
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, Header, HTTPException
@@ -5,6 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.services.research import (
+    create_evidence,
     create_watchlist,
     get_alerts,
     get_analytics,
@@ -133,13 +136,32 @@ async def create_watchlist_endpoint(payload: dict, authorization: str | None = H
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-@app.post('/api/research/run/{provider_id}')
-async def research_run(provider_id: str, authorization: str | None = Header(default=None)):
-    resolve_token(authorization)
+@app.post('/api/evidence')
+async def evidence_endpoint(payload: dict, authorization: str | None = Header(default=None)):
+    token = resolve_token(authorization)
     try:
-        return run_research(provider_id)
+        return create_evidence(token, payload.get('offer_id'), payload.get('source_url', ''), payload.get('note', ''))
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.on_event('startup')
+async def startup_event():
+    def worker():
+        import time
+        from app.services.monitor import scan_sources
+        time.sleep(5)
+        try:
+            scan_sources()
+        except Exception:
+            pass
+        while True:
+            time.sleep(300)
+            try:
+                scan_sources()
+            except Exception:
+                pass
+    threading.Thread(target=worker, daemon=True).start()
 
 
 

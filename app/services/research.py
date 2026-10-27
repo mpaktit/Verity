@@ -441,6 +441,7 @@ def get_sources():
 def run_research(provider_id):
     import uuid
     from datetime import datetime, timezone
+    from app.data.providers import PROVIDER_LIBRARY
     provider = next((p for p in PROVIDER_LIBRARY if p['id'] == provider_id), None)
     if provider is None:
         raise ValueError('Provider not found.')
@@ -453,3 +454,46 @@ def run_research(provider_id):
              'Automated public-source scan completed.', 0.85, 'completed', now),
         )
     return {'run_id': run_id, 'provider': provider['name'], 'status': 'completed', 'source_count': provider.get('source_count', 0)}
+    import uuid
+    from datetime import datetime, timezone
+    worker = get_worker_by_token(worker_token)
+    if worker is None:
+        raise ValueError('Invalid session.')
+    now = datetime.now(timezone.utc).isoformat()
+    evidence_id = f'evidence-{uuid.uuid4().hex[:8]}'
+    with get_connection() as conn:
+        conn.execute(
+            '''INSERT INTO evidence (id, offer_id, source_url, note, validated_by, validated_at, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?)''',
+            (evidence_id, offer_id, source_url, note, worker['name'], now, now),
+        )
+    log_audit(worker['id'], 'evidence.create', 'evidence', evidence_id, {'offer_id': offer_id})
+    return {'id': evidence_id, 'offer_id': offer_id, 'source_url': source_url, 'note': note, 'validated_by': worker['name']}
+    import uuid
+    from datetime import datetime, timezone
+    provider = next((p for p in PROVIDER_LIBRARY if p['id'] == provider_id), None)
+    if provider is None:
+        raise ValueError('Provider not found.')
+    run_id = 'run-' + provider_id + '-' + uuid.uuid4().hex[:8]
+    now = datetime.now(timezone.utc).isoformat()
+    with get_connection() as conn:
+        conn.execute(
+            'INSERT INTO research_runs (id, provider_id, triggered_at, source_count, findings, confidence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            (run_id, provider_id, now, provider.get('source_count', 0),
+             'Automated public-source scan completed.', 0.85, 'completed', now),
+        )
+    return {'run_id': run_id, 'provider': provider['name'], 'status': 'completed', 'source_count': provider.get('source_count', 0)}
+
+
+def create_evidence(worker_token, offer_id, source_url, note):
+    import uuid
+    from datetime import datetime, timezone
+    worker = get_worker_by_token(worker_token)
+    if worker is None: raise ValueError('Invalid session.')
+    now = datetime.now(timezone.utc).isoformat()
+    evidence_id = 'evidence-' + uuid.uuid4().hex[:8]
+    with get_connection() as conn:
+        conn.execute('INSERT INTO evidence (id, offer_id, source_url, note, validated_by, validated_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)', (evidence_id, offer_id, source_url, note, worker['name'], now, now))
+    log_audit(worker['id'], 'evidence.create', 'evidence', evidence_id, {'offer_id': offer_id})
+    return {'id': evidence_id, 'offer_id': offer_id, 'source_url': source_url, 'note': note, 'validated_by': worker['name']}
+
