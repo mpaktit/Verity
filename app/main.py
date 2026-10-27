@@ -5,18 +5,23 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.services.research import (
+    create_watchlist,
     get_alerts,
     get_analytics,
+    get_audit_log,
     get_insights,
     get_offer_summary,
     get_offers,
     get_provider_detail,
     get_providers,
     get_research_status,
+    get_sources,
+    get_watchlists,
     get_worker_by_token,
     get_worker_workspace,
     login_worker,
     register_worker,
+    run_research,
     submit_attempt,
     submit_review,
 )
@@ -94,6 +99,44 @@ async def insights():
 @app.get('/api/analytics')
 async def analytics():
     return get_analytics()
+
+
+@app.get('/api/sources')
+async def sources():
+    return get_sources()
+
+
+@app.get('/api/audit')
+async def audit(authorization: str | None = Header(default=None)):
+    resolve_token(authorization)
+    return get_audit_log()
+
+
+@app.get('/api/watchlists')
+async def watchlists(authorization: str | None = Header(default=None)):
+    token = resolve_token(authorization)
+    worker = get_worker_by_token(token)
+    return get_watchlists(worker['email'])
+
+
+@app.post('/api/watchlists')
+async def create_watchlist_endpoint(payload: dict, authorization: str | None = Header(default=None)):
+    token = resolve_token(authorization)
+    worker = get_worker_by_token(token)
+    try:
+        return create_watchlist(worker['email'], payload.get('name', 'Untitled watchlist'), payload.get('filters', {}))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post('/api/research/run/{provider_id}')
+async def research_run(provider_id: str, authorization: str | None = Header(default=None)):
+    resolve_token(authorization)
+    try:
+        return run_research(provider_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
 
 
 @app.post('/api/auth/signup')

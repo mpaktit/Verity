@@ -67,6 +67,74 @@ def _persist_workers():
             )
 
 
+
+
+def log_audit(worker_id, action, entity_type, entity_id=None, metadata=None, ip_address=None, user_agent=None):
+    import json
+    import uuid
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
+    try:
+        with get_connection() as conn:
+            conn.execute(
+                "INSERT INTO audit_log (id, worker_id, action, entity_type, entity_id, metadata, ip_address, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                ("audit-" + uuid.uuid4().hex[:12], worker_id, action, entity_type, entity_id,
+                 json.dumps(metadata or {}), ip_address, user_agent, now),
+            )
+    except Exception:
+        pass
+
+
+def get_audit_log(limit=50):
+    rows = []
+    with get_connection() as conn:
+        for row in conn.execute("SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ?", (limit,)):
+            rows.append({
+                "id": row["id"],
+                "worker_id": row["worker_id"],
+                "action": row["action"],
+                "entity_type": row["entity_type"],
+                "entity_id": row["entity_id"],
+                "metadata": row["metadata"],
+                "created_at": row["created_at"],
+            })
+    return rows
+
+
+def create_watchlist(worker_email, name, filters):
+    import json
+    import uuid
+    from datetime import datetime, timezone
+    worker = next((w for w in WORKER_LIBRARY.values() if w["email"] == worker_email), None)
+    if worker is None:
+        raise ValueError("Worker not found.")
+    now = datetime.now(timezone.utc).isoformat()
+    watchlist_id = "watchlist-" + uuid.uuid4().hex[:8]
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO watchlists (id, worker_id, name, filters, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (watchlist_id, worker["id"], name, json.dumps(filters or {}), now, now),
+        )
+    return {"id": watchlist_id, "name": name, "filters": filters or {}, "created_at": now}
+
+
+def get_watchlists(worker_email):
+    import json
+    worker = next((w for w in WORKER_LIBRARY.values() if w["email"] == worker_email), None)
+    if worker is None:
+        return []
+    rows = []
+    with get_connection() as conn:
+        for row in conn.execute("SELECT * FROM watchlists WHERE worker_id = ? ORDER BY created_at DESC", (worker["id"],)):
+            rows.append({
+                "id": row["id"],
+                "name": row["name"],
+                "filters": json.loads(row["filters"] or "{}"),
+                "created_at": row["created_at"],
+            })
+    return rows
+
+
 WORKER_LIBRARY = _load_worker_store()
 WORKSPACE_TASKS = [
     {
@@ -257,6 +325,7 @@ def register_worker(payload: dict):
     }
     WORKER_LIBRARY[email] = worker
     _persist_workers()
+    log_audit(worker['id'], 'worker.signup', 'worker', worker['id'], {'email': email, 'role': role})
     return {
         'token': worker['token'],
         **_get_worker_payload(worker),
@@ -270,6 +339,7 @@ def login_worker(payload: dict):
     worker = WORKER_LIBRARY.get(email)
     if worker is None or not _verify_password(password, worker.get('password_hash', '')):
         raise ValueError('Invalid credentials.')
+    log_audit(worker['id'], 'worker.login', 'worker', worker['id'], {'email': email})
     return {
         'token': worker['token'],
         **_get_worker_payload(worker),
@@ -327,6 +397,7 @@ def submit_attempt(token: str, payload: dict):
     task['attempts'].append(attempt)
     task['status'] = 'in-review'
     task['last_action'] = 'Attempt captured'
+    log_audit(worker['id'], 'task.attempt', 'task', task_id, {'approach': attempt['approach']})
     return {
         'task_id': task['id'],
         'approach': attempt['approach'],
@@ -355,6 +426,7 @@ def submit_review(token: str, payload: dict):
     }
     task['status'] = 'verified' if decision == 'approved' else 'needs-revision'
     task['last_action'] = f"Review marked as {decision}"
+    log_audit(worker['id'], 'task.review', 'task', task_id, {'decision': decision})
 
     return {
         'task_id': task['id'],
