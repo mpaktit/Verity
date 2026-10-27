@@ -6,13 +6,16 @@ from pathlib import Path
 
 from app.db import get_connection, init_db
 
-from app.data.alerts import ALERT_LIBRARY
-from app.data.offers import OFFER_LIBRARY
-from app.data.providers import PROVIDER_LIBRARY
+from app.services.repository import get_alerts as repo_get_alerts
+from app.services.repository import get_offers as repo_get_offers
+from app.services.repository import get_provider_detail as repo_get_provider_detail
+from app.services.repository import get_providers as repo_get_providers
+from app.services.repository import seed_reference_data
 
 APP_DATA_DIR = Path(__file__).resolve().parent.parent / 'data'
 WORKER_STORE_PATH = APP_DATA_DIR / 'workers.json'
 init_db()
+seed_reference_data()
 
 
 def _hash_password(password: str) -> str:
@@ -194,11 +197,13 @@ WORKSPACE_TASKS = [
 
 
 def get_offer_summary():
-    total = len(OFFER_LIBRARY)
-    active = sum(1 for item in OFFER_LIBRARY if item['status'] == 'active')
-    high_confidence = sum(1 for item in OFFER_LIBRARY if item['verified'] and item['score'] >= 85)
-    needs_review = sum(1 for item in OFFER_LIBRARY if not item['verified'])
-    categories = sorted({item['category'] for item in OFFER_LIBRARY})
+    offers = repo_get_offers()
+    providers = repo_get_providers()
+    total = len(offers)
+    active = sum(1 for item in offers if item['status'] == 'active')
+    high_confidence = sum(1 for item in offers if item['verified'] and item['score'] >= 85)
+    needs_review = sum(1 for item in offers if not item['verified'])
+    categories = sorted({item['category'] for item in offers})
     return {
         'total_offers': total,
         'active_offers': active,
@@ -209,43 +214,33 @@ def get_offer_summary():
 
 
 def get_offers():
-    return OFFER_LIBRARY
+    return repo_get_offers()
 
 
 def get_providers():
-    return PROVIDER_LIBRARY
+    return repo_get_providers()
 
 
 def get_provider_detail(provider_id: str):
-    provider = next((item for item in PROVIDER_LIBRARY if item['id'] == provider_id), None)
-    if provider is None:
-        return None
-
-    matching_offers = [
-        offer for offer in OFFER_LIBRARY if offer['provider'].lower() == provider['name'].lower()
-    ]
-
-    return {
-        **provider,
-        'offers': matching_offers,
-    }
+    return repo_get_provider_detail(provider_id)
 
 
 def get_research_status():
-    total_sources = sum(provider['source_count'] for provider in PROVIDER_LIBRARY)
-    active_providers = sum(1 for provider in PROVIDER_LIBRARY if provider['status'] == 'active')
-    avg_coverage = round(sum(provider['research_coverage'] for provider in PROVIDER_LIBRARY) / len(PROVIDER_LIBRARY), 1)
+    providers = repo_get_providers()
+    total_sources = sum(provider['source_count'] for provider in providers)
+    active_providers = sum(1 for provider in providers if provider['status'] == 'active')
+    avg_coverage = round(sum(provider['research_coverage'] for provider in providers) / len(providers), 1)
     return {
         'total_sources': total_sources,
         'active_providers': active_providers,
         'last_scan': '2026-10-27T12:00:00Z',
         'coverage_percent': avg_coverage,
-        'needs_review': sum(1 for provider in PROVIDER_LIBRARY if provider['status'] == 'monitoring'),
+        'needs_review': sum(1 for provider in providers if provider['status'] == 'monitoring'),
     }
 
 
 def get_alerts():
-    return ALERT_LIBRARY
+    return repo_get_alerts()
 
 
 def get_insights():
@@ -437,7 +432,7 @@ def submit_review(token: str, payload: dict):
 
 def get_sources():
     sources = []
-    for provider in PROVIDER_LIBRARY:
+    for provider in repo_get_providers():
         for src in provider.get('sources', []):
             sources.append({'provider': provider['name'], 'provider_id': provider['id'], 'source': src})
     return sources
