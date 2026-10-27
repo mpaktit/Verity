@@ -1,0 +1,391 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verity Operator Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f6f1e8;
+            --surface: #fffdf8;
+            --text: #1f1b16;
+            --muted: #6b6258;
+            --accent: #b86b2c;
+            --border: #e6ddcf;
+            --success: #2f6f4f;
+            --warning: #a65b1f;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .console { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+        .top-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 28px 0 24px; border-bottom: 1px solid var(--border); gap: 24px; flex-wrap: wrap;
+        }
+        .brand { display: flex; flex-direction: column; gap: 2px; }
+        .brand-mark { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+        .brand-sub { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+        .top-actions { display: flex; align-items: center; gap: 12px; flex: 1; max-width: 520px; min-width: 280px; }
+        .search { flex: 1; position: relative; }
+        .search-input {
+            width: 100%; background: var(--surface); border: 1px solid var(--border);
+            padding: 9px 12px 9px 34px; font-family: 'Inter', sans-serif; font-size: 13px;
+            color: var(--text); border-radius: 2px; transition: border-color 0.15s ease;
+        }
+        .search-input:focus { outline: none; border-color: var(--accent); }
+        .search-input::placeholder { color: var(--muted); }
+        .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; opacity: 0.5; }
+        .scan-btn {
+            background: var(--text); color: var(--bg); border: none; padding: 9px 18px;
+            font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.02em;
+            cursor: pointer; border-radius: 2px; transition: opacity 0.15s ease; white-space: nowrap;
+        }
+        .scan-btn:hover { opacity: 0.9; }
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 32px 0; }
+        .metric-card { background: var(--surface); border: 1px solid var(--border); padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+        .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+        .metric-value { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+        .metric-meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .section-header { display: flex; align-items: baseline; justify-content: space-between; padding: 40px 0 16px; border-top: 1px solid var(--border); margin-top: 8px; gap: 16px; flex-wrap: wrap; }
+        .section-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+        .section-sub { font-size: 12px; color: var(--muted); }
+        .provider-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+        .provider-card { background: var(--surface); border: 1px solid var(--border); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+        .provider-header { display: flex; align-items: center; justify-content: space-between; }
+        .provider-name { font-weight: 500; letter-spacing: -0.01em; }
+        .status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+        .status-dot.pending { background: var(--warning); }
+        .status-dot.idle { background: var(--muted); opacity: 0.4; }
+        .provider-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .offers-table { background: var(--surface); border: 1px solid var(--border); overflow-x: auto; }
+        .offers-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .offers-table thead { border-bottom: 1px solid var(--border); }
+        .offers-table th { text-align: left; padding: 11px 18px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 500; white-space: nowrap; }
+        .offers-table td { padding: 13px 18px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        .offers-table tbody tr:last-child td { border-bottom: none; }
+        .offer-title { font-weight: 500; letter-spacing: -0.01em; }
+        .offer-id { font-family: 'SF Mono', 'Consolas', monospace; font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .provider-cell { color: var(--text); }
+        .score { font-variant-numeric: tabular-nums; font-weight: 500; }
+        .score.high { color: var(--success); }
+        .score.mid { color: var(--warning); }
+        .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .tag { font-size: 11px; padding: 3px 8px; background: rgba(184, 107, 44, 0.08); color: var(--accent); border: 1px solid rgba(184, 107, 44, 0.2); border-radius: 2px; }
+        .tag.neutral { background: transparent; color: var(--muted); border-color: var(--border); }
+        .source-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+        .source-card { background: var(--surface); border: 1px solid var(--border); padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+        .source-header { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+        .source-name { font-weight: 500; letter-spacing: -0.01em; }
+        .source-url { font-family: 'SF Mono', 'Consolas', monospace; font-size: 11px; color: var(--muted); margin-top: 3px; word-break: break-all; }
+        .http-status { font-family: 'SF Mono', 'Consolas', monospace; font-size: 12px; padding: 4px 8px; border: 1px solid var(--border); background: rgba(47, 111, 79, 0.08); color: var(--success); white-space: nowrap; }
+        .http-status.warn { background: rgba(166, 91, 31, 0.08); color: var(--warning); }
+        .source-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 10px; border-top: 1px solid var(--border); }
+        .bottom-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; padding: 40px 0 48px; }
+        .panel { background: var(--surface); border: 1px solid var(--border); display: flex; flex-direction: column; }
+        .panel-header { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; }
+        .panel-title { font-weight: 600; letter-spacing: -0.01em; }
+        .panel-count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .panel-body { display: flex; flex-direction: column; }
+        .list-item { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+        .list-item:last-child { border-bottom: none; }
+        .item-header { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+        .item-title { font-weight: 500; letter-spacing: -0.01em; }
+        .item-time { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .item-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+        .item-meta { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .mono { font-family: 'SF Mono', 'Consolas', monospace; font-size: 11px; }
+        @media (max-width: 768px) {
+            .console { padding: 0 16px; }
+            .top-bar { flex-direction: column; align-items: flex-start; }
+            .top-actions { width: 100%; max-width: none; min-width: 0; }
+            .offers-table { margin: 0 -16px; border-left: none; border-right: none; }
+            .offers-table table { min-width: 680px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="console">
+        <header class="top-bar">
+            <div class="brand">
+                <div class="brand-mark">Verity</div>
+                <div class="brand-sub">Operator Console</div>
+            </div>
+            <div class="top-actions">
+                <div class="search">
+                    <svg class="search-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.2"/>
+                        <path d="M11 11L14 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search offers, providers, sources...">
+                </div>
+                <button class="scan-btn">Run targeted scan</button>
+            </div>
+        </header>
+        <section class="metrics">
+            <article class="metric-card">
+                <div class="metric-label">Active offers</div>
+                <div class="metric-value">24</div>
+                <div class="metric-meta">+3 in last 24h</div>
+            </article>
+            <article class="metric-card">
+                <div class="metric-label">Providers tracked</div>
+                <div class="metric-value">12</div>
+                <div class="metric-meta">11 reporting stable</div>
+            </article>
+            <article class="metric-card">
+                <div class="metric-label">Sources verified</div>
+                <div class="metric-value">38</div>
+                <div class="metric-meta">97.4% HTTP 2xx</div>
+            </article>
+            <article class="metric-card">
+                <div class="metric-label">Verification queue</div>
+                <div class="metric-value">6</div>
+                <div class="metric-meta">2 high priority</div>
+            </article>
+        </section>
+        <section>
+            <header class="section-header">
+                <div>
+                    <h2 class="section-title">Provider coverage</h2>
+                    <p class="section-sub">Scan status across tracked AI/SaaS access programs</p>
+                </div>
+            </header>
+            <div class="provider-grid">
+                <article class="provider-card">
+                    <div class="provider-header">
+                        <div class="provider-name">Anthropic</div>
+                        <div class="status-pill"><span class="status-dot"></span>Scanned</div>
+                    </div>
+                    <div class="provider-meta"><span>5 offers</span><span>Last: 2h 14m ago</span></div>
+                </article>
+                <article class="provider-card">
+                    <div class="provider-header">
+                        <div class="provider-name">Google DeepMind</div>
+                        <div class="status-pill"><span class="status-dot"></span>Scanned</div>
+                    </div>
+                    <div class="provider-meta"><span>3 offers</span><span>Last: 1h 48m ago</span></div>
+                </article>
+                <article class="provider-card">
+                    <div class="provider-header">
+                        <div class="provider-name">OpenAI</div>
+                        <div class="status-pill"><span class="status-dot"></span>Scanned</div>
+                    </div>
+                    <div class="provider-meta"><span>7 offers</span><span>Last: 3h 02m ago</span></div>
+                </article>
+                <article class="provider-card">
+                    <div class="provider-header">
+                        <div class="provider-name">Cohere</div>
+                        <div class="status-pill"><span class="status-dot pending"></span>In progress</div>
+                    </div>
+                    <div class="provider-meta"><span>2 offers</span><span>Last: 38m ago</span></div>
+                </article>
+                <article class="provider-card">
+                    <div class="provider-header">
+                        <div class="provider-name">Mistral AI</div>
+                        <div class="status-pill"><span class="status-dot"></span>Scanned</div>
+                    </div>
+                    <div class="provider-meta"><span>4 offers</span><span>Last: 4h 26m ago</span></div>
+                </article>
+                <article class="provider-card">
+                    <div class="provider-header">
+                        <div class="provider-name">Hugging Face</div>
+                        <div class="status-pill"><span class="status-dot idle"></span>Queued</div>
+                    </div>
+                    <div class="provider-meta"><span>3 offers</span><span>Last: 12h 17m ago</span></div>
+                </article>
+            </div>
+        </section>
+        <section>
+            <header class="section-header">
+                <div>
+                    <h2 class="section-title">Tracked offers</h2>
+                    <p class="section-sub">Public access programs ranked by verification confidence</p>
+                </div>
+            </header>
+            <div class="offers-table">
+                <table>
+                    <thead>
+                        <tr><th>Offer</th><th>Provider</th><th>Score</th><th>Type</th><th>Eligibility</th><th>Last verified</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><div class="offer-title">Research Access Program</div><div class="offer-id">vrf_9f2a-81bc</div></td>
+                            <td class="provider-cell">Anthropic</td>
+                            <td><span class="score high">96</span></td>
+                            <td><div class="tags"><span class="tag">API credits</span><span class="tag neutral">Academic</span></div></td>
+                            <td>Affiliated researchers</td>
+                            <td>Oct 27, 06:12 UTC</td>
+                        </tr>
+                        <tr>
+                            <td><div class="offer-title">Gemini 2.5 Research Grants</div><div class="offer-id">vrf_7c84-2e91</div></td>
+                            <td class="provider-cell">Google DeepMind</td>
+                            <td><span class="score high">94</span></td>
+                            <td><div class="tags"><span class="tag">Compute grant</span><span class="tag neutral">Non-commercial</span></div></td>
+                            <td>Independent researchers</td>
+                            <td>Oct 27, 05:46 UTC</td>
+                        </tr>
+                        <tr>
+                            <td><div class="offer-title">OpenAI Researcher Access</div><div class="offer-id">vrf_b3d6-7a42</div></td>
+                            <td class="provider-cell">OpenAI</td>
+                            <td><span class="score high">92</span></td>
+                            <td><div class="tags"><span class="tag">API access</span><span class="tag neutral">Safety research</span></div></td>
+                            <td>Verified institutions</td>
+                            <td>Oct 27, 04:28 UTC</td>
+                        </tr>
+                        <tr>
+                            <td><div class="offer-title">Mistral Large Access Pilot</div><div class="offer-id">vrf_61ab-8c03</div></td>
+                            <td class="provider-cell">Mistral AI</td>
+                            <td><span class="score mid">84</span></td>
+                            <td><div class="tags"><span class="tag">Beta access</span><span class="tag neutral">Eval work</span></div></td>
+                            <td>Applied researchers</td>
+                            <td>Oct 27, 03:16 UTC</td>
+                        </tr>
+                        <tr>
+                            <td><div class="offer-title">Cohere for AI Labs</div><div class="offer-id">vrf_2e75-9d18</div></td>
+                            <td class="provider-cell">Cohere</td>
+                            <td><span class="score mid">81</span></td>
+                            <td><div class="tags"><span class="tag">API credits</span><span class="tag neutral">Multilingual</span></div></td>
+                            <td>Nonprofit labs</td>
+                            <td>Oct 27, 02:52 UTC</td>
+                        </tr>
+                        <tr>
+                            <td><div class="offer-title">HF Open Science Grants</div><div class="offer-id">vrf_8a41-c762</div></td>
+                            <td class="provider-cell">Hugging Face</td>
+                            <td><span class="score mid">78</span></td>
+                            <td><div class="tags"><span class="tag">Inference credits</span><span class="tag neutral">Open datasets</span></div></td>
+                            <td>Community researchers</td>
+                            <td>Oct 26, 21:34 UTC</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section>
+            <header class="section-header">
+                <div>
+                    <h2 class="section-title">Source registry</h2>
+                    <p class="section-sub">Official pages and program announcements under active monitoring</p>
+                </div>
+            </header>
+            <div class="source-grid">
+                <article class="source-card">
+                    <div class="source-header">
+                        <div><div class="source-name">Anthropic Research Program</div><div class="source-url">https://www.anthropic.com/research/research-access</div></div>
+                        <div class="http-status">200 OK</div>
+                    </div>
+                    <div class="source-meta"><span>Last checked: 2h 14m ago</span><span>Cert valid</span></div>
+                </article>
+                <article class="source-card">
+                    <div class="source-header">
+                        <div><div class="source-name">Google AI Research Grants</div><div class="source-url">https://research.google/programs-and-grants/ai-grants/</div></div>
+                        <div class="http-status">200 OK</div>
+                    </div>
+                    <div class="source-meta"><span>Last checked: 1h 48m ago</span><span>Cert valid</span></div>
+                </article>
+                <article class="source-card">
+                    <div class="source-header">
+                        <div><div class="source-name">OpenAI Research Access</div><div class="source-url">https://openai.com/research/researcher-access</div></div>
+                        <div class="http-status">200 OK</div>
+                    </div>
+                    <div class="source-meta"><span>Last checked: 3h 02m ago</span><span>Cert valid</span></div>
+                </article>
+                <article class="source-card">
+                    <div class="source-header">
+                        <div><div class="source-name">Mistral AI Platform</div><div class="source-url">https://mistral.ai/news/research-access-program/</div></div>
+                        <div class="http-status">200 OK</div>
+                    </div>
+                    <div class="source-meta"><span>Last checked: 4h 26m ago</span><span>Cert valid</span></div>
+                </article>
+                <article class="source-card">
+                    <div class="source-header">
+                        <div><div class="source-name">Cohere For AI Labs</div><div class="source-url">https://cohere.com/research/for-ai-labs</div></div>
+                        <div class="http-status warn">301 Moved</div>
+                    </div>
+                    <div class="source-meta"><span>Last checked: 38m ago</span><span>Redirect followed</span></div>
+                </article>
+                <article class="source-card">
+                    <div class="source-header">
+                        <div><div class="source-name">Hugging Face Open Science</div><div class="source-url">https://huggingface.co/blog/open-science-grants</div></div>
+                        <div class="http-status">200 OK</div>
+                    </div>
+                    <div class="source-meta"><span>Last checked: 12h 17m ago</span><span>Cert valid</span></div>
+                </article>
+            </div>
+        </section>
+        <section class="bottom-grid">
+            <div class="panel">
+                <header class="panel-header"><h3 class="panel-title">Alerts feed</h3><span class="panel-count">4 active</span></header>
+                <div class="panel-body">
+                    <article class="list-item">
+                        <div class="item-header"><div class="item-title">New program page detected</div><div class="item-time">08:16 UTC</div></div>
+                        <div class="item-desc">Anthropic updated research access requirements with revised eligibility criteria.</div>
+                        <div class="item-meta"><span class="mono">src_9a82</span><span>•</span><span>Severity: medium</span></div>
+                    </article>
+                    <article class="list-item">
+                        <div class="item-header"><div class="item-title">Redirect chain lengthened</div><div class="item-time">07:42 UTC</div></div>
+                        <div class="item-desc">Cohere for AI Labs added an intermediate redirect; tracking updated.</div>
+                        <div class="item-meta"><span class="mono">src_6f41</span><span>•</span><span>Severity: low</span></div>
+                    </article>
+                    <article class="list-item">
+                        <div class="item-header"><div class="item-title">Grant window mention spotted</div><div class="item-time">06:28 UTC</div></div>
+                        <div class="item-desc">Google DeepMind page references Q1 2026 review cycle with rolling applications.</div>
+                        <div class="item-meta"><span class="mono">off_7c84</span><span>•</span><span>Severity: medium</span></div>
+                    </article>
+                    <article class="list-item">
+                        <div class="item-header"><div class="item-title">Terms page modified</div><div class="item-time">05:03 UTC</div></div>
+                        <div class="item-desc">OpenAI researcher access terms updated; requires re-verification of constraints.</div>
+                        <div class="item-meta"><span class="mono">src_b3d6</span><span>•</span><span>Severity: high</span></div>
+                    </article>
+                </div>
+            </div>
+            <div class="panel">
+                <header class="panel-header"><h3 class="panel-title">Verification queue</h3><span class="panel-count">6 items</span></header>
+                <div class="panel-body">
+                    <article class="list-item">
+                        <div class="item-header"><div class="item-title">Confirm institutional eligibility</div><div class="item-time">Priority 1</div></div>
+                        <div class="item-desc">OpenAI Researcher Access — verify applicant org against accepted institutions list.</div>
+                        <div class="item-meta"><span class="mono">vrf_b3d6-7a42</span><span>•</span><span>Assigned: op_nolan</span></div>
+                    </article>
+                    <article class="list-item">
+                        <div class="item-header"><div class="item-title">Parse grant terms extract</div><div class="item-time">Priority 1</div></div>
+                        <div class="item-desc">Google DeepMind Gemini 2.5 grants — extract compute quotas and IP constraints.</div>
+                        <div class="item-meta"><span class="mono">vrf_7c84-2e91</span><span>•</span><span>Assigned: op_mara</span></div>
+                    </article>
+                    <article class="list-item">
+                        <div class="item-header"><div class="item-title">Validate redirect target</div><div class="item-time">Priority 2</div></div>
+                        <div class="item-desc">Cohere for AI Labs — confirm final destination is official cohere.com domain.</div>
+                        <div class="item-meta"><span class="mono">src_6f41</span><span>•</span><span>Unassigned</span></div>
+                    </article>
+                    <article class="list-item">
+                        <div class="item-header"><div class="item-title">Check application form status</div><div class="item-time">Priority 2</div></div>
+                        <div class="item-desc">Mistral Large Access Pilot — confirm form is publicly accessible without auth gate.</div>
+                        <div class="item-meta"><span class="mono">vrf_61ab-8c03</span><span>•</span><span>Unassigned</span></div>
+                    </article>
+                    <article class="list-item">
+                        <div class="item-header"><div class="item-title">Verify credit terms</div><div class="item-time">Priority 3</div></div>
+                        <div class="item-desc">Hugging Face Open Science Grants — clarify expiration on inference credits.</div>
+                        <div class="item-meta"><span class="mono">vrf_8a41-c762</span><span>•</span><span>Unassigned</span></div>
+                    </article>
+                    <article class="list-item">
+                        <div class="item-header"><div class="item-title">Document academic affiliation rules</div><div class="item-time">Priority 3</div></div>
+                        <div class="item-desc">Anthropic Research Access — capture acceptable academic affiliations and verification path.</div>
+                        <div class="item-meta"><span class="mono">vrf_9f2a-81bc</span><span>•</span><span>Unassigned</span></div>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
