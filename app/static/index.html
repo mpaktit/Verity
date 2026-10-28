@@ -3,328 +3,395 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Verity | Public offer intelligence</title>
+    <title>Verity | Intelligence Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
-    <div class="app-shell">
+    <div class="app-container">
+      <!-- Sidebar -->
       <aside class="sidebar">
-        <div class="brand-wrap">
-          <div class="brand-mark">V</div>
-          <div>
-            <div class="brand-name">Verity</div>
-            <div class="brand-sub">Public offer desk</div>
+        <div class="sidebar-header">
+          <div class="logo">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="8" fill="#1a1a1a"/>
+              <path d="M8 16L12 12L16 16L20 12L24 16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 20L12 16L16 20L20 16L24 20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="logo-text">
+              <span class="logo-name">Verity</span>
+              <span class="logo-tagline">Intelligence Platform</span>
+            </div>
           </div>
         </div>
 
-        <nav class="nav" aria-label="Sidebar navigation">
-          <button class="nav-item active" data-view="overview">Overview</button>
-          <button class="nav-item" data-view="desk">Source desk</button>
-          <button class="nav-item" data-view="coverage">Coverage</button>
-          <button class="nav-item" data-view="signals">Signals</button>
-          <button class="nav-item" data-view="agents">Agents</button>
-          <button class="nav-item" data-view="review">Review</button>
+        <nav class="sidebar-nav">
+          <button class="nav-item active" data-view="overview">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="14" height="14" rx="2"/>
+              <path d="M3 8h14M8 3v14"/>
+            </svg>
+            <span>Dashboard</span>
+          </button>
+          <button class="nav-item" data-view="offers">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M10 2L3 7v5l7 5 7-5V7l-7-5z"/>
+              <path d="M3 12l7 5 7-5"/>
+            </svg>
+            <span>Opportunities</span>
+          </button>
+          <button class="nav-item" data-view="providers">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="10" cy="10" r="3"/>
+              <path d="M10 2v4M10 14v4M2 10h4M14 10h4"/>
+              <path d="M4.93 4.93l2.83 2.83M12.24 12.24l2.83 2.83M4.93 15.07l2.83-2.83M12.24 7.76l2.83-2.83"/>
+            </svg>
+            <span>Providers</span>
+          </button>
+          <button class="nav-item" data-view="agents">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M10 4a3 3 0 100 6 3 3 0 000-6z"/>
+              <path d="M6 13a4 4 0 018 0"/>
+              <path d="M4 4h1M15 4h1M4 16h1M15 16h1"/>
+            </svg>
+            <span>Agents</span>
+          </button>
+          <button class="nav-item" data-view="alerts">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M10 2L3 17h14L10 2z"/>
+              <path d="M10 8v4M10 14h.01"/>
+            </svg>
+            <span>Alerts</span>
+          </button>
+          <button class="nav-item" data-view="workspace">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <span>Workspace</span>
+          </button>
         </nav>
 
-        <p class="sidebar-note">Only official public pages. No account farming, no private scraping, no bypass work.</p>
-
-        <div id="authStatus" class="auth-status card-surface">
-          <div class="muted-label">Session</div>
-          <div class="status-pill offline">Not signed in</div>
+        <div class="sidebar-footer">
+          <div class="auth-status" id="authStatus">
+            <div class="auth-indicator offline"></div>
+            <span class="auth-text">Not authenticated</span>
+          </div>
         </div>
       </aside>
 
-      <main class="main-panel">
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Header -->
         <header class="topbar">
-          <div class="topbar-copy">
-            <div class="topbar-meta">
-              <span class="meta-badge">Official sources only</span>
-              <span id="scanFreshness" class="meta-badge subtle">Scan idle</span>
-            </div>
-            <p class="eyebrow">Verification dashboard</p>
-            <h1>See what is public, current, and worth checking.</h1>
-            <p class="topbar-subtitle">Track trials, credits, student programs, and partner offers from official pages. Confirm eligibility before you spend time on a signup.</p>
+          <div class="topbar-left">
+            <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            <p class="page-subtitle" id="pageSubtitle">Public offer intelligence dashboard</p>
           </div>
-          <div class="top-actions">
-            <input id="searchInput" type="search" class="search-input" placeholder="Search providers or offers" />
-            <button id="runCheckBtn" class="primary-btn">Run verification</button>
+          <div class="topbar-right">
+            <div class="search-wrapper">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="8" cy="8" r="6"/>
+                <path d="M12.5 12.5L16 16"/>
+              </svg>
+              <input type="search" id="searchInput" placeholder="Search offers, providers..." />
+            </div>
+            <button class="icon-btn" id="refreshBtn" title="Refresh data">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M16 10a6 6 0 00-6-6v6h6z"/>
+                <path d="M2 10a6 6 0 016 6v-6H2z"/>
+              </svg>
+            </button>
           </div>
         </header>
 
-        <nav class="mobile-nav" aria-label="Mobile navigation">
-          <button class="nav-item active" data-view="overview">Overview</button>
-          <button class="nav-item" data-view="desk">Desk</button>
-          <button class="nav-item" data-view="coverage">Coverage</button>
-          <button class="nav-item" data-view="signals">Signals</button>
-          <button class="nav-item" data-view="agents">Agents</button>
-          <button class="nav-item" data-view="review">Review</button>
-        </nav>
-
-        <section class="hero-strip" aria-label="Live research metrics">
-          <article class="hero-stat">
-            <span class="hero-label">Reachable sources</span>
-            <strong id="heroReachable">—</strong>
-            <small id="heroReachableNote">Awaiting first scan</small>
-          </article>
-          <article class="hero-stat accent">
-            <span class="hero-label">High-confidence offers</span>
-            <strong id="heroConfidence">—</strong>
-            <small>Verified public programs</small>
-          </article>
-          <article class="hero-stat">
-            <span class="hero-label">Open reviews</span>
-            <strong id="heroQueue">—</strong>
-            <small>Queued or in review</small>
-          </article>
-        </section>
-
-        <section id="view-overview" class="view-section" data-view-panel="overview">
-          <section id="insightsGrid" class="insights-grid"></section>
-          <section class="stats-grid" id="statsGrid"></section>
-        </section>
-
-        <section id="view-desk" class="view-section hidden" data-view-panel="desk">
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Source desk</p>
-                <h2>Official pages under watch</h2>
-              </div>
-              <span class="pill muted">HTTP checks + language extraction</span>
-            </div>
-            <p class="panel-lead">Each row is a public URL. A scan fetches the page, hashes it, and extracts trial, credit, student, and eligibility language. Changed hashes become alerts.</p>
-            <div id="sourcesTable" class="table-wrap"></div>
-          </section>
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Extracted language</p>
-                <h2>Latest public signals</h2>
-              </div>
-            </div>
-            <div id="signalsGrid" class="alerts-grid"></div>
-          </section>
-        </section>
-
-        <section id="view-coverage" class="view-section hidden" data-view-panel="coverage">
-          <section class="panel split-panel">
-            <div>
-              <div class="panel-head">
-                <div>
-                  <p class="eyebrow">Provider coverage</p>
-                  <h2>Who is being monitored</h2>
+        <!-- Views -->
+        <div class="views-container">
+          <!-- Dashboard View -->
+          <section id="view-overview" class="view active">
+            <!-- Metrics Grid -->
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-header">
+                  <span class="metric-label">Monitored Sources</span>
+                  <div class="metric-icon blue">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M3 4h14M3 8h14M3 12h14M3 16h14"/>
+                    </svg>
+                  </div>
                 </div>
-                <span class="pill muted">Live scan</span>
+                <div class="metric-value" id="metricSources">—</div>
+                <div class="metric-change positive">+12 this week</div>
               </div>
-              <div id="providersGrid" class="providers-grid"></div>
-            </div>
-            <div class="research-card">
-              <p class="eyebrow">Verification status</p>
-              <h3 id="researchHeadline">Coverage overview</h3>
-              <div id="researchSummary" class="research-summary"></div>
-            </div>
-          </section>
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Tracked programs</p>
-                <h2>Current public offers</h2>
-              </div>
-            </div>
-            <div id="offersGrid" class="offers-grid"></div>
-          </section>
-        </section>
-
-        <section id="view-signals" class="view-section hidden" data-view-panel="signals">
-          <section class="panel alerts-panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Alerts</p>
-                <h2>Priority monitoring</h2>
-              </div>
-            </div>
-            <div id="alertsGrid" class="alerts-grid"></div>
-          </section>
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Audit</p>
-                <h2>Activity log</h2>
-              </div>
-            </div>
-            <div id="logsGrid" class="alerts-grid"></div>
-          </section>
-        </section>
-
-        <section id="view-agents" class="view-section hidden" data-view-panel="agents">
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Agent orchestration</p>
-                <h2>Autonomous research & verification</h2>
-              </div>
-              <div class="agent-controls">
-                <button id="startAgentsBtn" class="primary-btn">Start agents</button>
-                <button id="stopAgentsBtn" class="secondary-btn hidden">Stop agents</button>
-                <button id="triggerResearchBtn" class="ghost-btn">Trigger research</button>
-              </div>
-            </div>
-            <p class="panel-lead">Subagents continuously research platforms, verify opportunities, and analyze patterns. Monitor their activity, manage API keys, and review their findings.</p>
-
-            <section class="agent-status-grid">
-              <article class="status-card">
-                <span class="status-label">Orchestrator</span>
-                <strong id="orchestratorStatus">Idle</strong>
-                <small id="orchestratorNote">Not running</small>
-              </article>
-              <article class="status-card">
-                <span class="status-label">Queue stats</span>
-                <strong id="queueStats">—</strong>
-                <small>Jobs pending/completed</small>
-              </article>
-              <article class="status-card">
-                <span class="status-label">Active agents</span>
-                <strong id="activeAgents">0</strong>
-                <small>Researchers, workers, analyzers</small>
-              </article>
-            </section>
-          </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Job queue</p>
-                <h2>Recent tasks</h2>
-              </div>
-              <div class="filter-tabs">
-                <button class="filter-tab active" data-filter="all">All</button>
-                <button class="filter-tab" data-filter="pending">Pending</button>
-                <button class="filter-tab" data-filter="running">Running</button>
-                <button class="filter-tab" data-filter="completed">Completed</button>
-              </div>
-            </div>
-            <div id="jobsGrid" class="jobs-grid"></div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Agent memory</p>
-                <h2>Stored knowledge</h2>
-              </div>
-              <div class="filter-tabs">
-                <button class="filter-tab active" data-memory-filter="all">All</button>
-                <button class="filter-tab" data-memory-filter="opportunity">Opportunities</button>
-                <button class="filter-tab" data-memory-filter="verification">Verifications</button>
-                <button class="filter-tab" data-memory-filter="analysis">Analysis</button>
-              </div>
-            </div>
-            <div id="memoryGrid" class="memory-grid"></div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">API keys</p>
-                <h2>AI provider credentials</h2>
-              </div>
-              <button id="addKeyBtn" class="secondary-btn">Add API key</button>
-            </div>
-            <div id="apiKeysGrid" class="api-keys-grid"></div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Agent logs</p>
-                <h2>Activity stream</h2>
-              </div>
-            </div>
-            <div id="agentLogsGrid" class="logs-grid"></div>
-          </section>
-        </section>
-
-        <section id="view-review" class="view-section hidden" data-view-panel="review">
-          <section id="authPanel" class="panel auth-panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Worker access</p>
-                <h2>Join the verification desk</h2>
-              </div>
-            </div>
-            <p class="panel-lead">Researchers confirm what public pages say. Reviewers decide if an offer is official, current, and eligible — not whether a loophole exists.</p>
-            <div class="auth-grid">
-              <form id="loginForm" class="auth-form">
-                <h3>Sign in</h3>
-                <input type="email" name="email" placeholder="Email" required />
-                <input type="password" name="password" placeholder="Password" minlength="8" required />
-                <button type="submit" class="primary-btn">Enter workspace</button>
-              </form>
-              <form id="signupForm" class="auth-form">
-                <h3>Create a desk account</h3>
-                <input type="text" name="name" placeholder="Full name" required />
-                <input type="email" name="email" placeholder="Email" required />
-                <input type="password" name="password" placeholder="Password (8+ characters)" minlength="8" required />
-                <select name="role">
-                  <option value="researcher">Researcher</option>
-                  <option value="reviewer">Reviewer</option>
-                  <option value="analyst">Analyst</option>
-                </select>
-                <button type="submit" class="secondary-btn">Create account</button>
-              </form>
-            </div>
-          </section>
-
-          <section id="workspacePanel" class="workspace-shell hidden">
-            <div class="panel workspace-overview">
-              <div class="panel-head">
-                <div>
-                  <p class="eyebrow">Worker workspace</p>
-                  <h2 id="workerTitle">Your verification board</h2>
+              <div class="metric-card">
+                <div class="metric-header">
+                  <span class="metric-label">Active Offers</span>
+                  <div class="metric-icon green">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M10 2L3 7v5l7 5 7-5V7l-7-5z"/>
+                      <path d="M3 12l7 5 7-5"/>
+                    </svg>
+                  </div>
                 </div>
-                <button id="signOutBtn" class="ghost-btn" type="button">Sign out</button>
+                <div class="metric-value" id="metricOffers">—</div>
+                <div class="metric-change positive">+3 verified</div>
               </div>
-              <div id="workspaceSummary" class="workspace-summary"></div>
+              <div class="metric-card">
+                <div class="metric-header">
+                  <span class="metric-label">High Confidence</span>
+                  <div class="metric-icon purple">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M9 12l2 2 4-4"/>
+                      <circle cx="10" cy="10" r="8"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="metric-value" id="metricConfidence">—</div>
+                <div class="metric-change neutral">80%+ score</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-header">
+                  <span class="metric-label">Research Jobs</span>
+                  <div class="metric-icon orange">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <circle cx="10" cy="10" r="3"/>
+                      <path d="M10 2v4M10 14v4M2 10h4M14 10h4"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="metric-value" id="metricJobs">—</div>
+                <div class="metric-change neutral" id="metricJobsStatus">Idle</div>
+              </div>
             </div>
-            <div class="panel tasks-panel">
-              <div class="panel-head">
-                <div>
-                  <p class="eyebrow">Live queue</p>
-                  <h2>Verification pipeline</h2>
+
+            <!-- Main Content Grid -->
+            <div class="content-grid">
+              <!-- Recent Offers -->
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title">Recent Opportunities</h2>
+                  <button class="text-btn" data-view="offers">View all →</button>
+                </div>
+                <div class="card-body">
+                  <div id="recentOffers" class="offers-list"></div>
                 </div>
               </div>
-              <div id="taskList" class="task-list"></div>
-            </div>
-            <div class="panel">
-              <div class="panel-head">
-                <div>
-                  <p class="eyebrow">Watchlists</p>
-                  <h2>Keep a closer eye</h2>
+
+              <!-- Top Providers -->
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title">Provider Coverage</h2>
+                  <button class="text-btn" data-view="providers">View all →</button>
+                </div>
+                <div class="card-body">
+                  <div id="topProviders" class="providers-list"></div>
                 </div>
               </div>
-              <form id="watchlistForm" class="inline-form watchlist-form">
-                <input type="text" name="name" placeholder="Watchlist name, e.g. Student programs" required />
-                <button type="submit" class="secondary-btn">Save watchlist</button>
-              </form>
-              <div id="watchlistGrid" class="chip-row"></div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="card full-width">
+              <div class="card-header">
+                <h2 class="card-title">Recent Activity</h2>
+                <div class="card-actions">
+                  <button class="filter-chip active">All</button>
+                  <button class="filter-chip">Research</button>
+                  <button class="filter-chip">Verification</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="activityFeed" class="activity-feed"></div>
+              </div>
             </div>
           </section>
-        </section>
+
+          <!-- Offers View -->
+          <section id="view-offers" class="view">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">All Opportunities</h2>
+                <div class="card-actions">
+                  <select class="select-input" id="offerFilter">
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="monitoring">Monitoring</option>
+                    <option value="verified">Verified</option>
+                  </select>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="offersGrid" class="data-table"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Providers View -->
+          <section id="view-providers" class="view">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Provider Intelligence</h2>
+              </div>
+              <div class="card-body">
+                <div id="providersGrid" class="providers-grid"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Agents View -->
+          <section id="view-agents" class="view">
+            <!-- Agent Controls -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Agent Orchestration</h2>
+                <div class="card-actions">
+                  <button id="startAgentsBtn" class="btn btn-primary">Start Agents</button>
+                  <button id="stopAgentsBtn" class="btn btn-secondary hidden">Stop Agents</button>
+                  <button id="triggerResearchBtn" class="btn btn-ghost">Trigger Research</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="agent-status">
+                  <div class="status-item">
+                    <span class="status-label">Orchestrator</span>
+                    <span class="status-value" id="orchestratorStatus">Idle</span>
+                  </div>
+                  <div class="status-item">
+                    <span class="status-label">Queue</span>
+                    <span class="status-value" id="queueStats">0 pending</span>
+                  </div>
+                  <div class="status-item">
+                    <span class="status-label">Active Agents</span>
+                    <span class="status-value" id="activeAgents">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Job Queue -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Job Queue</h2>
+                <div class="card-actions">
+                  <button class="filter-chip active">All</button>
+                  <button class="filter-chip">Pending</button>
+                  <button class="filter-chip">Running</button>
+                  <button class="filter-chip">Completed</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="jobsGrid" class="data-table"></div>
+              </div>
+            </div>
+
+            <!-- Agent Memory -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Agent Memory</h2>
+                <div class="card-actions">
+                  <button class="filter-chip active">All</button>
+                  <button class="filter-chip">Opportunities</button>
+                  <button class="filter-chip">Verifications</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="memoryGrid" class="memory-grid"></div>
+              </div>
+            </div>
+
+            <!-- API Keys -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">AI Provider Keys</h2>
+                <button id="addKeyBtn" class="btn btn-secondary">Add Key</button>
+              </div>
+              <div class="card-body">
+                <div id="apiKeysGrid" class="api-keys-list"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Alerts View -->
+          <section id="view-alerts" class="view">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Alerts & Notifications</h2>
+              </div>
+              <div class="card-body">
+                <div id="alertsGrid" class="alerts-list"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Workspace View -->
+          <section id="view-workspace" class="view">
+            <!-- Auth Panel -->
+            <div id="authPanel" class="card auth-card">
+              <div class="card-header">
+                <h2 class="card-title">Authentication</h2>
+              </div>
+              <div class="card-body">
+                <div class="auth-forms">
+                  <form id="loginForm" class="auth-form">
+                    <h3>Sign In</h3>
+                    <input type="email" name="email" placeholder="Email address" required />
+                    <input type="password" name="password" placeholder="Password" minlength="8" required />
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                  </form>
+                  <form id="signupForm" class="auth-form">
+                    <h3>Create Account</h3>
+                    <input type="text" name="name" placeholder="Full name" required />
+                    <input type="email" name="email" placeholder="Email address" required />
+                    <input type="password" name="password" placeholder="Password (8+ characters)" minlength="8" required />
+                    <select name="role">
+                      <option value="researcher">Researcher</option>
+                      <option value="reviewer">Reviewer</option>
+                      <option value="analyst">Analyst</option>
+                    </select>
+                    <button type="submit" class="btn btn-secondary">Create Account</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Workspace Panel -->
+            <div id="workspacePanel" class="workspace-panel hidden">
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title">Your Workspace</h2>
+                  <button id="signOutBtn" class="btn btn-ghost">Sign Out</button>
+                </div>
+                <div class="card-body">
+                  <div id="workspaceSummary" class="workspace-summary"></div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title">Assigned Tasks</h2>
+                </div>
+                <div class="card-body">
+                  <div id="taskList" class="task-list"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
       </main>
     </div>
 
-    <div id="providerModal" class="modal hidden" aria-hidden="true">
-      <div class="modal-backdrop" data-close="true"></div>
-      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="providerModalTitle">
-        <button type="button" class="modal-close" aria-label="Close provider detail">×</button>
-        <div id="providerModalContent"></div>
+    <!-- Modals -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <button class="modal-close">×</button>
+        <div id="modalBody"></div>
       </div>
     </div>
 
-    <div id="toast" class="toast hidden" aria-live="polite"></div>
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+
     <script src="/static/app.js"></script>
   </body>
 </html>
