@@ -1,7 +1,9 @@
-// Verity Intelligence Platform - Premium Professional JavaScript
+// Verity Operations Console - Practical Functional JavaScript
 
 const AUTH_KEY = 'verity_token';
 const API_BASE = '/api';
+let refreshInterval = null;
+let wsConnection = null;
 
 // Utility Functions
 function escapeHtml(value) {
@@ -13,14 +15,14 @@ function escapeHtml(value) {
 }
 
 function formatTime(value) {
-  if (!value || value === 'never') return 'Never';
+  if (!value || value === 'never') return '--:--:--';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
 function formatNumber(value) {
-  if (value == null) return '—';
+  if (value == null) return '0';
   return Number(value).toLocaleString();
 }
 
@@ -42,17 +44,6 @@ async function fetchJson(url, options = {}) {
   return payload;
 }
 
-// Toast Notifications
-function showToast(message, type = 'info') {
-  const toast = document.getElementById('toast');
-  if (!toast) return;
-  toast.textContent = message;
-  toast.className = `toast ${type}`;
-  toast.classList.remove('hidden');
-  clearTimeout(showToast._timer);
-  showToast._timer = setTimeout(() => toast.classList.add('hidden'), 3000);
-}
-
 // Authentication
 function getStoredToken() {
   return localStorage.getItem(AUTH_KEY) || '';
@@ -65,17 +56,17 @@ function setAuthState(token, profile) {
     localStorage.removeItem(AUTH_KEY);
   }
   
-  const authIndicator = document.querySelector('#authStatus .auth-indicator');
-  const authText = document.querySelector('#authStatus .auth-text');
+  const authStatus = document.getElementById('authStatus');
+  const authText = document.getElementById('authText');
   
-  if (authIndicator && authText) {
+  if (authStatus && authText) {
     if (token && profile) {
-      authIndicator.classList.remove('offline');
-      authIndicator.classList.add('online');
+      authStatus.classList.remove('offline');
+      authStatus.classList.add('online');
       authText.textContent = profile.name;
     } else {
-      authIndicator.classList.remove('online');
-      authIndicator.classList.add('offline');
+      authStatus.classList.remove('online');
+      authStatus.classList.add('offline');
       authText.textContent = 'Not authenticated';
     }
   }
@@ -91,248 +82,57 @@ function setView(view) {
     targetView.classList.add('active');
   }
   
-  document.querySelectorAll('.nav-item').forEach((button) => {
+  document.querySelectorAll('.nav-btn').forEach((button) => {
     button.classList.toggle('active', button.dataset.view === view);
   });
   
-  // Update page title
   const pageTitle = document.getElementById('pageTitle');
-  const pageSubtitle = document.getElementById('pageSubtitle');
   const titles = {
-    overview: ['Dashboard', 'Public offer intelligence dashboard'],
-    offers: ['Opportunities', 'All tracked opportunities'],
-    providers: ['Providers', 'Provider intelligence coverage'],
-    agents: ['Agents', 'Autonomous research & verification'],
-    alerts: ['Alerts', 'System alerts & notifications'],
-    workspace: ['Workspace', 'Your verification workspace']
+    dashboard: 'Dashboard',
+    logs: 'Live Logs',
+    agents: 'Agents',
+    jobs: 'Jobs',
+    workspace: 'Workspace',
+    offers: 'Offers'
   };
   
-  if (pageTitle && pageSubtitle && titles[view]) {
-    pageTitle.textContent = titles[view][0];
-    pageSubtitle.textContent = titles[view][1];
+  if (pageTitle) {
+    pageTitle.textContent = titles[view] || 'Dashboard';
   }
   
   // Load view-specific data
-  if (view === 'overview') loadDashboard();
-  if (view === 'offers') loadOffers();
-  if (view === 'providers') loadProviders();
+  if (view === 'dashboard') loadDashboard();
+  if (view === 'logs') loadLogs();
   if (view === 'agents') loadAgents();
-  if (view === 'alerts') loadAlerts();
+  if (view === 'jobs') loadJobs();
   if (view === 'workspace') loadWorkspace();
+  if (view === 'offers') loadOffers();
 }
 
 function bindNavigation() {
-  document.querySelectorAll('.nav-item').forEach((button) => {
+  document.querySelectorAll('.nav-btn').forEach((button) => {
     button.addEventListener('click', () => setView(button.dataset.view));
   });
-  
-  // Handle view buttons in cards
-  document.querySelectorAll('[data-view]').forEach((button) => {
-    if (!button.classList.contains('nav-item')) {
-      button.addEventListener('click', (e) => {
-        e.preventDefault();
-        setView(button.dataset.view);
-      });
-    }
-  });
 }
 
-// Dashboard Rendering
+// Dashboard
 async function loadDashboard() {
   try {
-    const [summary, offers, providers, research] = await Promise.all([
-      fetchJson('/api/summary'),
-      fetchJson('/api/offers'),
-      fetchJson('/api/providers'),
-      fetchJson('/api/research')
-    ]);
-    
-    // Update metrics
-    document.getElementById('metricSources').textContent = formatNumber(research.checked_sources);
-    document.getElementById('metricOffers').textContent = formatNumber(summary.active_offers);
-    document.getElementById('metricConfidence').textContent = formatNumber(summary.high_confidence);
-    
-    // Render recent offers
-    renderRecentOffers(offers.slice(0, 5));
-    
-    // Render top providers
-    renderTopProviders(providers.slice(0, 5));
-    
-    // Render activity feed
-    renderActivityFeed([]);
-    
-  } catch (error) {
-    console.error('Failed to load dashboard:', error);
-  }
-}
-
-function renderRecentOffers(offers) {
-  const container = document.getElementById('recentOffers');
-  if (!container) return;
-  
-  if (!offers.length) {
-    container.innerHTML = '<div class="empty-state">No offers available</div>';
-    return;
-  }
-  
-  container.innerHTML = offers.map(offer => `
-    <div class="offer-item">
-      <div class="offer-header">
-        <span class="offer-title">${escapeHtml(offer.product)}</span>
-        <span class="offer-badge ${offer.status}">${escapeHtml(offer.status)}</span>
-      </div>
-      <div class="offer-details">
-        <span class="offer-provider">${escapeHtml(offer.provider)}</span>
-        <span class="offer-reward">${escapeHtml(offer.reward)}</span>
-      </div>
-      <div class="offer-meta">
-        <span class="offer-score">Score: ${offer.score}</span>
-        <span>${offer.official ? 'Official' : 'Unofficial'}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderTopProviders(providers) {
-  const container = document.getElementById('topProviders');
-  if (!container) return;
-  
-  if (!providers.length) {
-    container.innerHTML = '<div class="empty-state">No providers available</div>';
-    return;
-  }
-  
-  container.innerHTML = providers.map(provider => `
-    <div class="provider-item">
-      <div class="provider-header">
-        <span class="provider-name">${escapeHtml(provider.name)}</span>
-        <span class="provider-badge ${provider.status}">${escapeHtml(provider.status)}</span>
-      </div>
-      <div class="provider-details">
-        <span>Coverage: ${provider.research_coverage}%</span>
-        <span>Sources: ${provider.source_count}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderActivityFeed(activities) {
-  const container = document.getElementById('activityFeed');
-  if (!container) return;
-  
-  if (!activities.length) {
-    container.innerHTML = '<div class="empty-state">No recent activity</div>';
-    return;
-  }
-  
-  container.innerHTML = activities.map(activity => `
-    <div class="activity-item">
-      <div class="activity-header">
-        <span class="activity-title">${escapeHtml(activity.action)}</span>
-        <span class="activity-time">${formatTime(activity.created_at)}</span>
-      </div>
-      <div class="activity-details">${escapeHtml(activity.details || '')}</div>
-    </div>
-  `).join('');
-}
-
-// Offers View
-async function loadOffers() {
-  try {
-    const offers = await fetchJson('/api/offers');
-    renderOffers(offers);
-  } catch (error) {
-    console.error('Failed to load offers:', error);
-  }
-}
-
-function renderOffers(offers) {
-  const container = document.getElementById('offersGrid');
-  if (!container) return;
-  
-  if (!offers.length) {
-    container.innerHTML = '<div class="empty-state">No offers available</div>';
-    return;
-  }
-  
-  container.innerHTML = offers.map(offer => `
-    <div class="job-item">
-      <div class="offer-header">
-        <span class="offer-title">${escapeHtml(offer.product)}</span>
-        <span class="offer-badge ${offer.status}">${escapeHtml(offer.status)}</span>
-      </div>
-      <div class="offer-details">
-        <div><strong>Provider:</strong> ${escapeHtml(offer.provider)}</div>
-        <div><strong>Reward:</strong> ${escapeHtml(offer.reward)}</div>
-        <div><strong>Eligibility:</strong> ${escapeHtml(offer.eligibility)}</div>
-      </div>
-      <div class="offer-meta">
-        <span class="offer-score">Score: ${offer.score}</span>
-        <span>${offer.official ? '✓ Official' : 'Unofficial'}</span>
-        <span>${offer.verified ? '✓ Verified' : 'Unverified'}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-// Providers View
-async function loadProviders() {
-  try {
-    const providers = await fetchJson('/api/providers');
-    renderProviders(providers);
-  } catch (error) {
-    console.error('Failed to load providers:', error);
-  }
-}
-
-function renderProviders(providers) {
-  const container = document.getElementById('providersGrid');
-  if (!container) return;
-  
-  if (!providers.length) {
-    container.innerHTML = '<div class="empty-state">No providers available</div>';
-    return;
-  }
-  
-  container.innerHTML = providers.map(provider => `
-    <div class="provider-item">
-      <div class="provider-header">
-        <span class="provider-name">${escapeHtml(provider.name)}</span>
-        <span class="provider-badge ${provider.status}">${escapeHtml(provider.status)}</span>
-      </div>
-      <div class="provider-details">
-        <div><strong>Category:</strong> ${escapeHtml(provider.category)}</div>
-        <div><strong>Coverage:</strong> ${provider.research_coverage}%</div>
-        <div><strong>Sources:</strong> ${provider.source_count}</div>
-        <div><strong>Signal:</strong> ${escapeHtml(provider.signal || 'None')}</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-// Agents View
-async function loadAgents() {
-  try {
     const status = await fetchJson('/api/agents/status');
-    renderAgentStatus(status);
+    updateDashboardStats(status);
     
     const jobs = await fetchJson('/api/agents/jobs');
-    renderJobs(jobs.jobs || []);
-    
-    const memory = await fetchJson('/api/agents/memory');
-    renderMemory(memory.memories || []);
-    
-    const keys = await fetchJson('/api/ai/keys');
-    renderApiKeys(keys.keys || []);
+    updateRecentActivity(jobs.jobs || []);
     
   } catch (error) {
-    console.error('Failed to load agents:', error);
+    addLogEntry('error', `Failed to load dashboard: ${error.message}`);
   }
 }
 
-function renderAgentStatus(status) {
+function updateDashboardStats(status) {
   document.getElementById('orchestratorStatus').textContent = status.status || 'Idle';
-  document.getElementById('queueStats').textContent = `${status.queue?.pending || 0} pending / ${status.queue?.completed || 0} completed`;
+  document.getElementById('jobsPending').textContent = status.queue?.pending || 0;
+  document.getElementById('jobsCompleted').textContent = status.queue?.completed || 0;
   document.getElementById('activeAgents').textContent = status.agents?.length || 0;
   
   const startBtn = document.getElementById('startAgentsBtn');
@@ -347,113 +147,173 @@ function renderAgentStatus(status) {
   }
 }
 
-function renderJobs(jobs) {
-  const container = document.getElementById('jobsGrid');
+function updateRecentActivity(jobs) {
+  const container = document.getElementById('activityLog');
   if (!container) return;
   
   if (!jobs.length) {
-    container.innerHTML = '<div class="empty-state">No jobs in queue</div>';
+    container.innerHTML = '<div class="log-entry"><span class="log-time">--:--:--</span><span class="log-level info">INFO</span><span class="log-message">No recent activity</span></div>';
+    return;
+  }
+  
+  container.innerHTML = jobs.slice(0, 10).map(job => `
+    <div class="log-entry">
+      <span class="log-time">${formatTime(job.created_at)}</span>
+      <span class="log-level ${job.status === 'completed' ? 'success' : job.status === 'failed' ? 'error' : 'info'}">${job.status}</span>
+      <span class="log-message">${job.job_type} - ${job.agent_type} (ID: ${job.id.substring(0, 8)}...)</span>
+    </div>
+  `).join('');
+  
+  document.getElementById('logCount').textContent = `${jobs.length} entries`;
+}
+
+// Logs
+async function loadLogs() {
+  try {
+    const logs = await fetchJson('/api/agents/logs');
+    renderLogs(logs.logs || []);
+  } catch (error) {
+    addLogEntry('error', `Failed to load logs: ${error.message}`);
+  }
+}
+
+function renderLogs(logs) {
+  const container = document.getElementById('fullLog');
+  if (!container) return;
+  
+  if (!logs.length) {
+    container.innerHTML = '<div class="log-entry"><span class="log-time">--:--:--</span><span class="log-level info">INFO</span><span class="log-message">No logs available</span></div>';
+    return;
+  }
+  
+  container.innerHTML = logs.map(log => `
+    <div class="log-entry">
+      <span class="log-time">${formatTime(log.created_at)}</span>
+      <span class="log-level ${log.log_level}">${log.log_level}</span>
+      <span class="log-message">[${log.agent_id?.substring(0, 12)}...] ${escapeHtml(log.message)}</span>
+    </div>
+  `).join('');
+}
+
+function addLogEntry(level, message) {
+  const container = document.getElementById('fullLog');
+  const activityContainer = document.getElementById('activityLog');
+  const agentContainer = document.getElementById('agentLog');
+  
+  const entry = `<div class="log-entry">
+    <span class="log-time">${formatTime(new Date().toISOString())}</span>
+    <span class="log-level ${level}">${level}</span>
+    <span class="log-message">${escapeHtml(message)}</span>
+  </div>`;
+  
+  if (container) container.insertAdjacentHTML('afterbegin', entry);
+  if (activityContainer) activityContainer.insertAdjacentHTML('afterbegin', entry);
+  if (agentContainer) agentContainer.insertAdjacentHTML('afterbegin', entry);
+}
+
+function clearLogs() {
+  const containers = ['fullLog', 'activityLog', 'agentLog'];
+  containers.forEach(id => {
+    const container = document.getElementById(id);
+    if (container) {
+      container.innerHTML = '<div class="log-entry"><span class="log-time">--:--:--</span><span class="log-level info">INFO</span><span class="log-message">Logs cleared</span></div>';
+    }
+  });
+}
+
+// Agents
+async function loadAgents() {
+  try {
+    const status = await fetchJson('/api/agents/status');
+    renderAgentGrid(status);
+    
+    const logs = await fetchJson('/api/agents/logs');
+    renderAgentLogs(logs.logs || []);
+    
+  } catch (error) {
+    addLogEntry('error', `Failed to load agents: ${error.message}`);
+  }
+}
+
+function renderAgentGrid(status) {
+  const container = document.getElementById('agentGrid');
+  if (!container) return;
+  
+  const agents = status.agents || [];
+  
+  // Count by type
+  const researcherCount = agents.filter(a => a.agent_type === 'researcher').length;
+  const workerCount = agents.filter(a => a.agent_type === 'worker').length;
+  const analyzerCount = agents.filter(a => a.agent_type === 'analyzer').length;
+  
+  container.innerHTML = `
+    <div class="agent-card">
+      <div class="agent-name">Researcher</div>
+      <div class="agent-status ${status.status === 'running' ? 'running' : 'idle'}">${status.status === 'running' ? 'Running' : 'Idle'}</div>
+      <div class="agent-metrics">Active: ${researcherCount} | Jobs: ${status.queue?.pending || 0}</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Worker</div>
+      <div class="agent-status ${status.status === 'running' ? 'running' : 'idle'}">${status.status === 'running' ? 'Running' : 'Idle'}</div>
+      <div class="agent-metrics">Active: ${workerCount} | Completed: ${status.queue?.completed || 0}</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Analyzer</div>
+      <div class="agent-status ${status.status === 'running' ? 'running' : 'idle'}">${status.status === 'running' ? 'Running' : 'Idle'}</div>
+      <div class="agent-metrics">Active: ${analyzerCount} | Errors: ${status.queue?.failed || 0}</div>
+    </div>
+  `;
+}
+
+function renderAgentLogs(logs) {
+  const container = document.getElementById('agentLog');
+  if (!container) return;
+  
+  if (!logs.length) {
+    container.innerHTML = '<div class="log-entry"><span class="log-time">--:--:--</span><span class="log-level info">INFO</span><span class="log-message">No agent activity</span></div>';
+    return;
+  }
+  
+  container.innerHTML = logs.slice(0, 20).map(log => `
+    <div class="log-entry">
+      <span class="log-time">${formatTime(log.created_at)}</span>
+      <span class="log-level ${log.log_level}">${log.log_level}</span>
+      <span class="log-message">[${log.agent_id?.substring(0, 12)}...] ${escapeHtml(log.message)}</span>
+    </div>
+  `).join('');
+}
+
+// Jobs
+async function loadJobs() {
+  try {
+    const jobs = await fetchJson('/api/agents/jobs');
+    renderJobs(jobs.jobs || []);
+  } catch (error) {
+    addLogEntry('error', `Failed to load jobs: ${error.message}`);
+  }
+}
+
+function renderJobs(jobs) {
+  const container = document.getElementById('jobList');
+  if (!container) return;
+  
+  if (!jobs.length) {
+    container.innerHTML = '<div class="job-item"><div class="job-info"><div class="job-id">No jobs</div><div class="job-type">Queue is empty</div></div></div>';
     return;
   }
   
   container.innerHTML = jobs.map(job => `
     <div class="job-item">
-      <div class="job-header">
-        <span class="job-id">${escapeHtml(job.id)}</span>
-        <span class="job-badge ${job.status}">${escapeHtml(job.status)}</span>
+      <div class="job-info">
+        <div class="job-id">${job.id}</div>
+        <div class="job-type">${job.job_type} - ${job.agent_type}</div>
       </div>
-      <div class="job-details">
-        <div><strong>Type:</strong> ${escapeHtml(job.job_type)}</div>
-        <div><strong>Agent:</strong> ${escapeHtml(job.agent_type)}</div>
-        <div><strong>Priority:</strong> ${job.priority}</div>
-      </div>
-      <div class="job-meta">
-        <span>Created: ${formatTime(job.created_at)}</span>
-        ${job.completed_at ? `<span>Completed: ${formatTime(job.completed_at)}</span>` : ''}
-      </div>
+      <span class="job-status ${job.status}">${job.status}</span>
     </div>
   `).join('');
 }
 
-function renderMemory(memories) {
-  const container = document.getElementById('memoryGrid');
-  if (!container) return;
-  
-  if (!memories.length) {
-    container.innerHTML = '<div class="empty-state">No stored memories</div>';
-    return;
-  }
-  
-  container.innerHTML = memories.slice(0, 10).map(memory => `
-    <div class="memory-item">
-      <div class="memory-header">
-        <span class="memory-type">${escapeHtml(memory.memory_type)}</span>
-        <span class="memory-time">${formatTime(memory.created_at)}</span>
-      </div>
-      <div class="memory-content">${escapeHtml(memory.content?.substring(0, 200))}${memory.content?.length > 200 ? '...' : ''}</div>
-    </div>
-  `).join('');
-}
-
-function renderApiKeys(keys) {
-  const container = document.getElementById('apiKeysGrid');
-  if (!container) return;
-  
-  if (!keys.length) {
-    container.innerHTML = '<div class="empty-state">No API keys configured</div>';
-    return;
-  }
-  
-  container.innerHTML = keys.map(key => `
-    <div class="api-key-item">
-      <div class="api-key-header">
-        <span class="api-key-name">${escapeHtml(key.key_name)}</span>
-        <span class="api-key-provider">${escapeHtml(key.provider)}</span>
-      </div>
-      <div class="api-key-details">
-        <span>Rate limit: ${key.rate_limit_per_minute}/min</span>
-        <span>Usage: ${key.usage_count}</span>
-        <span class="api-key-status ${key.is_active ? 'active' : 'inactive'}">${key.is_active ? 'Active' : 'Inactive'}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-// Alerts View
-async function loadAlerts() {
-  try {
-    const alerts = await fetchJson('/api/alerts');
-    renderAlerts(alerts);
-  } catch (error) {
-    console.error('Failed to load alerts:', error);
-  }
-}
-
-function renderAlerts(alerts) {
-  const container = document.getElementById('alertsGrid');
-  if (!container) return;
-  
-  if (!alerts.length) {
-    container.innerHTML = '<div class="empty-state">No alerts</div>';
-    return;
-  }
-  
-  container.innerHTML = alerts.map(alert => `
-    <div class="alert-item">
-      <div class="alert-header">
-        <span class="alert-title">${escapeHtml(alert.title)}</span>
-        <span class="alert-severity ${alert.severity}">${escapeHtml(alert.severity)}</span>
-      </div>
-      <div class="alert-message">${escapeHtml(alert.message)}</div>
-      <div class="alert-meta">
-        <span>Updated: ${formatTime(alert.updated_at)}</span>
-        ${alert.provider ? `<span>Provider: ${escapeHtml(alert.provider)}</span>` : ''}
-      </div>
-    </div>
-  `).join('');
-}
-
-// Workspace View
+// Workspace
 async function loadWorkspace() {
   const token = getStoredToken();
   if (!token) {
@@ -465,8 +325,8 @@ async function loadWorkspace() {
   try {
     const data = await fetchJson('/api/workspace');
     setAuthState(token, data.profile);
-    renderAuthMode(true, data.profile);
-    renderWorkspaceSummary(data.workspace);
+    renderAuthMode(true);
+    renderWorkspaceStats(data.workspace);
     renderTasks(data.workspace.tasks);
   } catch (error) {
     setAuthState('', null);
@@ -474,7 +334,7 @@ async function loadWorkspace() {
   }
 }
 
-function renderAuthMode(isLoggedIn, profile = null) {
+function renderAuthMode(isLoggedIn) {
   const authPanel = document.getElementById('authPanel');
   const workspacePanel = document.getElementById('workspacePanel');
   
@@ -482,27 +342,27 @@ function renderAuthMode(isLoggedIn, profile = null) {
   workspacePanel?.classList.toggle('hidden', !isLoggedIn);
 }
 
-function renderWorkspaceSummary(workspace) {
-  const container = document.getElementById('workspaceSummary');
+function renderWorkspaceStats(workspace) {
+  const container = document.getElementById('workspaceStats');
   if (!container) return;
   
   const summary = workspace.summary || {};
   container.innerHTML = `
-    <div class="workspace-stat">
-      <div class="workspace-stat-value">${formatNumber(summary.total_tasks ?? 0)}</div>
-      <div class="workspace-stat-label">Total Tasks</div>
+    <div class="stat-box">
+      <div class="stat-label">Total Tasks</div>
+      <div class="stat-value">${formatNumber(summary.total_tasks ?? 0)}</div>
     </div>
-    <div class="workspace-stat">
-      <div class="workspace-stat-value">${formatNumber(summary.queued ?? 0)}</div>
-      <div class="workspace-stat-label">Queued</div>
+    <div class="stat-box">
+      <div class="stat-label">Queued</div>
+      <div class="stat-value">${formatNumber(summary.queued ?? 0)}</div>
     </div>
-    <div class="workspace-stat">
-      <div class="workspace-stat-value">${formatNumber(summary.in_review ?? 0)}</div>
-      <div class="workspace-stat-label">In Review</div>
+    <div class="stat-box">
+      <div class="stat-label">In Review</div>
+      <div class="stat-value">${formatNumber(summary.in_review ?? 0)}</div>
     </div>
-    <div class="workspace-stat">
-      <div class="workspace-stat-value">${formatNumber(summary.verified ?? 0)}</div>
-      <div class="workspace-stat-label">Verified</div>
+    <div class="stat-box">
+      <div class="stat-label">Verified</div>
+      <div class="stat-value">${formatNumber(summary.verified ?? 0)}</div>
     </div>
   `;
 }
@@ -512,24 +372,51 @@ function renderTasks(tasks) {
   if (!container) return;
   
   if (!tasks.length) {
-    container.innerHTML = '<div class="empty-state">No tasks assigned</div>';
+    container.innerHTML = '<div class="job-item"><div class="job-info"><div class="job-type">No tasks assigned</div></div></div>';
     return;
   }
   
   container.innerHTML = tasks.map(task => `
     <div class="task-item">
-      <div class="task-header">
-        <span class="task-provider">${escapeHtml(task.provider)}</span>
-        <span class="task-badge ${task.status}">${escapeHtml(task.status)}</span>
-      </div>
-      <h3 class="task-title">${escapeHtml(task.title)}</h3>
-      <p class="task-summary">${escapeHtml(task.summary)}</p>
+      <div class="task-provider">${escapeHtml(task.provider)}</div>
+      <div class="task-title">${escapeHtml(task.title)}</div>
+      <div class="task-summary">${escapeHtml(task.summary)}</div>
       <div class="task-meta">
-        <span>Priority: <strong>${escapeHtml(task.priority)}</strong></span>
-        <span>Category: <strong>${escapeHtml(task.category)}</strong></span>
+        <span>Priority: ${escapeHtml(task.priority)}</span>
+        <span>Status: ${escapeHtml(task.status)}</span>
       </div>
-      <div class="task-signals">
-        ${(task.signals || []).map(signal => `<span class="task-signal">${escapeHtml(signal)}</span>`).join('')}
+    </div>
+  `).join('');
+}
+
+// Offers
+async function loadOffers() {
+  try {
+    const offers = await fetchJson('/api/offers');
+    renderOffers(offers);
+  } catch (error) {
+    addLogEntry('error', `Failed to load offers: ${error.message}`);
+  }
+}
+
+function renderOffers(offers) {
+  const container = document.getElementById('offersList');
+  if (!container) return;
+  
+  if (!offers.length) {
+    container.innerHTML = '<div class="job-item"><div class="job-info"><div class="job-type">No offers available</div></div></div>';
+    return;
+  }
+  
+  container.innerHTML = offers.map(offer => `
+    <div class="task-item">
+      <div class="task-provider">${escapeHtml(offer.provider)}</div>
+      <div class="task-title">${escapeHtml(offer.product)}</div>
+      <div class="task-summary">${escapeHtml(offer.reward)}</div>
+      <div class="task-meta">
+        <span>Score: ${offer.score}</span>
+        <span>Status: ${offer.status}</span>
+        <span>${offer.verified ? '✓ Verified' : 'Unverified'}</span>
       </div>
     </div>
   `).join('');
@@ -538,34 +425,37 @@ function renderTasks(tasks) {
 // Agent Controls
 async function startAgents() {
   try {
+    addLogEntry('info', 'Starting agent orchestrator...');
     await fetchJson('/api/agents/start', { method: 'POST' });
-    showToast('Agents started successfully', 'success');
-    loadAgents();
+    addLogEntry('success', 'Agents started successfully');
+    loadDashboard();
   } catch (error) {
-    showToast(error.message, 'error');
+    addLogEntry('error', `Failed to start agents: ${error.message}`);
   }
 }
 
 async function stopAgents() {
   try {
+    addLogEntry('info', 'Stopping agent orchestrator...');
     await fetchJson('/api/agents/stop', { method: 'POST' });
-    showToast('Agents stopped', 'info');
-    loadAgents();
+    addLogEntry('success', 'Agents stopped');
+    loadDashboard();
   } catch (error) {
-    showToast(error.message, 'error');
+    addLogEntry('error', `Failed to stop agents: ${error.message}`);
   }
 }
 
 async function triggerResearch() {
   try {
+    addLogEntry('info', 'Triggering research on Hacker News...');
     await fetchJson('/api/agents/research', { 
       method: 'POST',
       body: JSON.stringify({ platform: 'hackernews' })
     });
-    showToast('Research triggered', 'success');
-    loadAgents();
+    addLogEntry('success', 'Research job queued');
+    loadDashboard();
   } catch (error) {
-    showToast(error.message, 'error');
+    addLogEntry('error', `Failed to trigger research: ${error.message}`);
   }
 }
 
@@ -576,6 +466,7 @@ async function handleLogin(event) {
   const formData = new FormData(form);
   
   try {
+    addLogEntry('info', 'Attempting login...');
     const data = await fetchJson('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({
@@ -584,11 +475,11 @@ async function handleLogin(event) {
       })
     });
     setAuthState(data.token, { name: data.name, role: data.role });
-    showToast('Signed in successfully', 'success');
+    addLogEntry('success', `Signed in as ${data.name}`);
     form.reset();
     loadWorkspace();
   } catch (error) {
-    showToast(error.message, 'error');
+    addLogEntry('error', `Login failed: ${error.message}`);
   }
 }
 
@@ -598,6 +489,7 @@ async function handleSignup(event) {
   const formData = new FormData(form);
   
   try {
+    addLogEntry('info', 'Creating account...');
     const data = await fetchJson('/api/auth/signup', {
       method: 'POST',
       body: JSON.stringify({
@@ -608,18 +500,31 @@ async function handleSignup(event) {
       })
     });
     setAuthState(data.token, { name: data.name, role: data.role });
-    showToast('Account created successfully', 'success');
+    addLogEntry('success', `Account created for ${data.name}`);
     form.reset();
     loadWorkspace();
   } catch (error) {
-    showToast(error.message, 'error');
+    addLogEntry('error', `Signup failed: ${error.message}`);
   }
 }
 
 function handleSignOut() {
+  addLogEntry('info', 'Signing out...');
   setAuthState('', null);
   renderAuthMode(false);
-  showToast('Signed out', 'info');
+}
+
+// Auto-refresh
+function startAutoRefresh() {
+  if (refreshInterval) clearInterval(refreshInterval);
+  
+  refreshInterval = setInterval(() => {
+    const activeView = document.querySelector('.view.active');
+    if (activeView?.id === 'view-dashboard') loadDashboard();
+    if (activeView?.id === 'view-logs') loadLogs();
+    if (activeView?.id === 'view-agents') loadAgents();
+    if (activeView?.id === 'view-jobs') loadJobs();
+  }, 5000); // Refresh every 5 seconds
 }
 
 // Initialize
@@ -639,30 +544,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const startAgentsBtn = document.getElementById('startAgentsBtn');
   const stopAgentsBtn = document.getElementById('stopAgentsBtn');
   const triggerResearchBtn = document.getElementById('triggerResearchBtn');
+  const refreshBtn = document.getElementById('refreshBtn');
   
   startAgentsBtn?.addEventListener('click', startAgents);
   stopAgentsBtn?.addEventListener('click', stopAgents);
   triggerResearchBtn?.addEventListener('click', triggerResearch);
-  
-  // Refresh button
-  const refreshBtn = document.getElementById('refreshBtn');
   refreshBtn?.addEventListener('click', () => {
     const activeView = document.querySelector('.view.active');
-    if (activeView?.id === 'view-overview') loadDashboard();
-    if (activeView?.id === 'view-offers') loadOffers();
-    if (activeView?.id === 'view-providers') loadProviders();
+    if (activeView?.id === 'view-dashboard') loadDashboard();
+    if (activeView?.id === 'view-logs') loadLogs();
     if (activeView?.id === 'view-agents') loadAgents();
-    if (activeView?.id === 'view-alerts') loadAlerts();
+    if (activeView?.id === 'view-jobs') loadJobs();
     if (activeView?.id === 'view-workspace') loadWorkspace();
-    showToast('Data refreshed', 'success');
+    if (activeView?.id === 'view-offers') loadOffers();
+    addLogEntry('info', 'Data refreshed');
   });
   
   // Load initial view
-  setView('overview');
+  setView('dashboard');
   
   // Check for existing token
   const token = getStoredToken();
   if (token) {
     setAuthState(token, { name: 'User', role: 'researcher' });
   }
+  
+  // Start auto-refresh
+  startAutoRefresh();
+  
+  addLogEntry('info', 'Verity Operations Console initialized');
+  addLogEntry('info', 'Ready to start agents and monitor activity');
 });
