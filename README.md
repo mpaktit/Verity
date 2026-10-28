@@ -99,7 +99,7 @@ A premium dashboard surfaces:
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.12 or higher
+- **Python 3.12** (Python 3.14+ may have compatibility issues with some dependencies)
 - Git
 - (Optional) API keys for AI providers (Anthropic, OpenAI, Groq)
 
