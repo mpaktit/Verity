@@ -161,3 +161,42 @@ def test_analytics_endpoint_returns_review_pipeline_snapshot():
     assert 'pipeline' in payload
     assert 'trend' in payload
     assert isinstance(payload['pipeline'], list)
+
+
+def test_missing_provider_returns_404():
+    response = client.get('/api/providers/not-a-real-provider')
+    assert response.status_code == 404
+
+
+def test_audit_requires_auth():
+    response = client.get('/api/audit')
+    assert response.status_code == 401
+
+
+def test_sources_include_official_urls():
+    response = client.get('/api/sources')
+    assert response.status_code == 200
+    sources = response.json()
+    assert sources
+    first = sources[0]
+    assert 'url' in first
+    assert first['url'].startswith('http')
+    assert 'status' in first
+
+
+def test_workspace_attempt_persists_for_later_fetch():
+    unique_email = f"persist-{__import__('uuid').uuid4().hex[:8]}@example.com"
+    client.post('/api/auth/signup', json={'name': 'Persist Worker', 'email': unique_email, 'password': 'secretpass', 'role': 'researcher'})
+    login = client.post('/api/auth/login', json={'email': unique_email, 'password': 'secretpass'})
+    token = login.json()['token']
+    headers = {'Authorization': f'Bearer {token}'}
+    attempt = client.post(
+        '/api/workspace/attempt',
+        headers=headers,
+        json={'task_id': 'anthropic-public-plans', 'approach': 'pricing-page', 'notes': 'Official pricing page describes paid plans, not a hidden bypass.'}
+    )
+    assert attempt.status_code == 200
+    workspace = client.get('/api/workspace', headers=headers)
+    task = next(item for item in workspace.json()['workspace']['tasks'] if item['id'] == 'anthropic-public-plans')
+    assert task['attempts']
+    assert task['status'] == 'in-review'

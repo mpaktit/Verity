@@ -5,7 +5,7 @@ from pathlib import Path
 
 from app.db import get_db_path
 
-CURRENT_VERSION = 1
+CURRENT_VERSION = 2
 
 MIGRATIONS = [
     # Version 1: initial schema
@@ -206,6 +206,123 @@ MIGRATIONS = [
     "CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at)",
     "CREATE INDEX IF NOT EXISTS idx_evidence_offer ON evidence(offer_id)",
     "CREATE INDEX IF NOT EXISTS idx_research_runs_provider ON research_runs(provider_id)",
+    """
+    CREATE TABLE IF NOT EXISTS source_signals (
+        id TEXT PRIMARY KEY,
+        source_id TEXT NOT NULL,
+        provider_id TEXT NOT NULL,
+        label TEXT NOT NULL,
+        snippet TEXT NOT NULL,
+        weight INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (source_id) REFERENCES sources(id) ON DELETE CASCADE,
+        FOREIGN KEY (provider_id) REFERENCES providers(id) ON DELETE CASCADE
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_source_signals_source ON source_signals(source_id)",
+    "CREATE INDEX IF NOT EXISTS idx_source_signals_created ON source_signals(created_at)",
+    """
+    CREATE TABLE IF NOT EXISTS source_snapshots (
+        id TEXT PRIMARY KEY,
+        source_id TEXT NOT NULL,
+        http_status INTEGER,
+        content_hash TEXT,
+        signal_score INTEGER NOT NULL DEFAULT 0,
+        changed INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (source_id) REFERENCES sources(id) ON DELETE CASCADE
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_source_snapshots_source ON source_snapshots(source_id)",
+    # Version 2: Subagent architecture tables
+    """
+    CREATE TABLE IF NOT EXISTS agent_jobs (
+        id TEXT PRIMARY KEY,
+        job_type TEXT NOT NULL,
+        agent_type TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        priority INTEGER NOT NULL DEFAULT 5,
+        retry_count INTEGER NOT NULL DEFAULT 0,
+        max_retries INTEGER NOT NULL DEFAULT 3,
+        result TEXT,
+        error_message TEXT,
+        started_at TEXT,
+        completed_at TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS agent_memory (
+        id TEXT PRIMARY KEY,
+        agent_id TEXT NOT NULL,
+        memory_type TEXT NOT NULL,
+        content TEXT NOT NULL,
+        metadata TEXT,
+        embedding BLOB,
+        relevance_score REAL,
+        access_count INTEGER NOT NULL DEFAULT 0,
+        last_accessed_at TEXT,
+        expires_at TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS agent_logs (
+        id TEXT PRIMARY KEY,
+        agent_id TEXT NOT NULL,
+        job_id TEXT,
+        log_level TEXT NOT NULL,
+        message TEXT NOT NULL,
+        context TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (job_id) REFERENCES agent_jobs(id) ON DELETE SET NULL
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS api_keys (
+        id TEXT PRIMARY KEY,
+        provider TEXT NOT NULL,
+        key_name TEXT NOT NULL,
+        api_key_encrypted TEXT NOT NULL,
+        rate_limit_per_minute INTEGER NOT NULL DEFAULT 60,
+        usage_count INTEGER NOT NULL DEFAULT 0,
+        last_used_at TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        metadata TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS agent_configurations (
+        id TEXT PRIMARY KEY,
+        agent_type TEXT NOT NULL,
+        config_key TEXT NOT NULL,
+        config_value TEXT NOT NULL,
+        is_secret INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        UNIQUE(agent_type, config_key)
+    )
+    """,
+    # Indexes for agent tables
+    "CREATE INDEX IF NOT EXISTS idx_agent_jobs_status ON agent_jobs(status)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_jobs_type ON agent_jobs(job_type)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_jobs_priority ON agent_jobs(priority)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_jobs_created ON agent_jobs(created_at)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_memory_agent ON agent_memory(agent_id)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_memory_type ON agent_memory(memory_type)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_memory_created ON agent_memory(created_at)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_logs_agent ON agent_logs(agent_id)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_logs_job ON agent_logs(job_id)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_logs_created ON agent_logs(created_at)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_logs_level ON agent_logs(log_level)",
+    "CREATE INDEX IF NOT EXISTS idx_api_keys_provider ON api_keys(provider)",
+    "CREATE INDEX IF NOT EXISTS idx_api_keys_active ON api_keys(is_active)",
+    "CREATE INDEX IF NOT EXISTS idx_agent_config_type ON agent_configurations(agent_type)",
 ]
 
 

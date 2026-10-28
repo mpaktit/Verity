@@ -25,8 +25,9 @@ class Settings:
         self.PBKDF2_ITERATIONS = int(os.environ.get('PBKDF2_ITERATIONS', '200000'))
 
         # Monitoring
+        self.ENABLE_SCHEDULER = os.environ.get('VERITY_ENABLE_SCHEDULER', 'false').lower() == 'true'
         self.CRAWL_INTERVAL_SECONDS = int(
-            os.environ.get('CRAWL_INTERVAL_SECONDS', '300')
+            os.environ.get('CRAWL_INTERVAL_SECONDS', '900')
         )
         self.MAX_SOURCES_PER_RUN = int(
             os.environ.get('MAX_SOURCES_PER_RUN', '20')

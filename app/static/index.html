@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Verity | Public Offer Intelligence</title>
+    <title>Verity | Public offer intelligence</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
@@ -16,17 +16,20 @@
           <div class="brand-mark">V</div>
           <div>
             <div class="brand-name">Verity</div>
-            <div class="brand-sub">Access intelligence</div>
+            <div class="brand-sub">Public offer desk</div>
           </div>
         </div>
 
         <nav class="nav" aria-label="Sidebar navigation">
-          <button class="nav-item active">Overview</button>
-          <button class="nav-item">Desk</button>
-          <button class="nav-item">Coverage</button>
-          <button class="nav-item">Signals</button>
-          <button class="nav-item">Review</button>
+          <button class="nav-item active" data-view="overview">Overview</button>
+          <button class="nav-item" data-view="desk">Source desk</button>
+          <button class="nav-item" data-view="coverage">Coverage</button>
+          <button class="nav-item" data-view="signals">Signals</button>
+          <button class="nav-item" data-view="agents">Agents</button>
+          <button class="nav-item" data-view="review">Review</button>
         </nav>
+
+        <p class="sidebar-note">Only official public pages. No account farming, no private scraping, no bypass work.</p>
 
         <div id="authStatus" class="auth-status card-surface">
           <div class="muted-label">Session</div>
@@ -38,144 +41,278 @@
         <header class="topbar">
           <div class="topbar-copy">
             <div class="topbar-meta">
-              <span class="meta-badge">Live source tracking</span>
-              <span class="meta-badge subtle">Updated 2m ago</span>
+              <span class="meta-badge">Official sources only</span>
+              <span id="scanFreshness" class="meta-badge subtle">Scan idle</span>
             </div>
             <p class="eyebrow">Verification dashboard</p>
-            <h1>Find what is public, visible, and credible.</h1>
-            <p class="topbar-subtitle">Track public access programs, eligibility signals, and review status across the AI and SaaS ecosystem before making a decision.</p>
+            <h1>See what is public, current, and worth checking.</h1>
+            <p class="topbar-subtitle">Track trials, credits, student programs, and partner offers from official pages. Confirm eligibility before you spend time on a signup.</p>
           </div>
           <div class="top-actions">
-            <input id="searchInput" type="text" class="search-input" placeholder="Search providers or offers" />
+            <input id="searchInput" type="search" class="search-input" placeholder="Search providers or offers" />
             <button id="runCheckBtn" class="primary-btn">Run verification</button>
           </div>
         </header>
 
-        <section class="hero-strip" aria-label="Platform overview metrics">
+        <nav class="mobile-nav" aria-label="Mobile navigation">
+          <button class="nav-item active" data-view="overview">Overview</button>
+          <button class="nav-item" data-view="desk">Desk</button>
+          <button class="nav-item" data-view="coverage">Coverage</button>
+          <button class="nav-item" data-view="signals">Signals</button>
+          <button class="nav-item" data-view="agents">Agents</button>
+          <button class="nav-item" data-view="review">Review</button>
+        </nav>
+
+        <section class="hero-strip" aria-label="Live research metrics">
           <article class="hero-stat">
-            <span class="hero-label">Verified coverage</span>
-            <strong>94%</strong>
-            <small>of tracked public offers</small>
+            <span class="hero-label">Reachable sources</span>
+            <strong id="heroReachable">—</strong>
+            <small id="heroReachableNote">Awaiting first scan</small>
           </article>
           <article class="hero-stat accent">
-            <span class="hero-label">Cross-source checks</span>
-            <strong>18</strong>
-            <small>live verification signals</small>
+            <span class="hero-label">High-confidence offers</span>
+            <strong id="heroConfidence">—</strong>
+            <small>Verified public programs</small>
           </article>
           <article class="hero-stat">
-            <span class="hero-label">Review throughput</span>
-            <strong>6.4x</strong>
-            <small>faster triage velocity</small>
+            <span class="hero-label">Open reviews</span>
+            <strong id="heroQueue">—</strong>
+            <small>Queued or in review</small>
           </article>
         </section>
 
-        <section id="authPanel" class="panel auth-panel">
-          <div class="panel-head">
+        <section id="view-overview" class="view-section" data-view-panel="overview">
+          <section id="insightsGrid" class="insights-grid"></section>
+          <section class="stats-grid" id="statsGrid"></section>
+        </section>
+
+        <section id="view-desk" class="view-section hidden" data-view-panel="desk">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Source desk</p>
+                <h2>Official pages under watch</h2>
+              </div>
+              <span class="pill muted">HTTP checks + language extraction</span>
+            </div>
+            <p class="panel-lead">Each row is a public URL. A scan fetches the page, hashes it, and extracts trial, credit, student, and eligibility language. Changed hashes become alerts.</p>
+            <div id="sourcesTable" class="table-wrap"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Extracted language</p>
+                <h2>Latest public signals</h2>
+              </div>
+            </div>
+            <div id="signalsGrid" class="alerts-grid"></div>
+          </section>
+        </section>
+
+        <section id="view-coverage" class="view-section hidden" data-view-panel="coverage">
+          <section class="panel split-panel">
             <div>
-              <p class="eyebrow">Worker access</p>
-              <h2>Join the verification desk</h2>
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Provider coverage</p>
+                  <h2>Who is being monitored</h2>
+                </div>
+                <span class="pill muted">Live scan</span>
+              </div>
+              <div id="providersGrid" class="providers-grid"></div>
             </div>
-          </div>
-
-          <div class="auth-grid">
-            <form id="loginForm" class="auth-form">
-              <h3>Login</h3>
-              <input type="email" name="email" placeholder="Email" required />
-              <input type="password" name="password" placeholder="Password" required />
-              <button type="submit" class="primary-btn">Enter workspace</button>
-            </form>
-
-            <form id="signupForm" class="auth-form">
-              <h3>Sign up</h3>
-              <input type="text" name="name" placeholder="Full name" required />
-              <input type="email" name="email" placeholder="Email" required />
-              <input type="password" name="password" placeholder="Password" required />
-              <select name="role">
-                <option value="researcher">Researcher</option>
-                <option value="reviewer">Reviewer</option>
-                <option value="analyst">Analyst</option>
-              </select>
-              <button type="submit" class="secondary-btn">Create account</button>
-            </form>
-          </div>
-        </section>
-
-        <section id="workspacePanel" class="workspace-shell hidden">
-          <div class="panel workspace-overview">
+            <div class="research-card">
+              <p class="eyebrow">Verification status</p>
+              <h3 id="researchHeadline">Coverage overview</h3>
+              <div id="researchSummary" class="research-summary"></div>
+            </div>
+          </section>
+          <section class="panel">
             <div class="panel-head">
               <div>
-                <p class="eyebrow">Worker workspace</p>
-                <h2 id="workerTitle">Your verification board</h2>
+                <p class="eyebrow">Tracked programs</p>
+                <h2>Current public offers</h2>
               </div>
-              <button id="signOutBtn" class="ghost-btn">Sign out</button>
             </div>
-            <div id="workspaceSummary" class="workspace-summary"></div>
-          </div>
+            <div id="offersGrid" class="offers-grid"></div>
+          </section>
+        </section>
 
-          <div class="panel tasks-panel">
+        <section id="view-signals" class="view-section hidden" data-view-panel="signals">
+          <section class="panel alerts-panel">
             <div class="panel-head">
               <div>
-                <p class="eyebrow">Live queue</p>
-                <h2>Verification pipeline</h2>
+                <p class="eyebrow">Alerts</p>
+                <h2>Priority monitoring</h2>
               </div>
             </div>
-            <div id="taskList" class="task-list"></div>
-          </div>
-        </section>
-
-        <section id="insightsGrid" class="insights-grid"></section>
-
-        <section class="stats-grid" id="statsGrid"></section>
-
-        <section class="panel split-panel">
-          <div>
+            <div id="alertsGrid" class="alerts-grid"></div>
+          </section>
+          <section class="panel">
             <div class="panel-head">
               <div>
-                <p class="eyebrow">Provider coverage</p>
-                <h2>Source coverage</h2>
+                <p class="eyebrow">Audit</p>
+                <h2>Activity log</h2>
               </div>
-              <span class="pill muted">Live scan</span>
             </div>
-            <div id="providersGrid" class="providers-grid"></div>
-          </div>
-
-          <div class="research-card">
-            <p class="eyebrow">Verification status</p>
-            <h3 id="researchHeadline">Coverage overview</h3>
-            <div id="researchSummary" class="research-summary"></div>
-          </div>
+            <div id="logsGrid" class="alerts-grid"></div>
+          </section>
         </section>
 
-        <section class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Tracked programs</p>
-              <h2>Current public offers</h2>
+        <section id="view-agents" class="view-section hidden" data-view-panel="agents">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Agent orchestration</p>
+                <h2>Autonomous research & verification</h2>
+              </div>
+              <div class="agent-controls">
+                <button id="startAgentsBtn" class="primary-btn">Start agents</button>
+                <button id="stopAgentsBtn" class="secondary-btn hidden">Stop agents</button>
+                <button id="triggerResearchBtn" class="ghost-btn">Trigger research</button>
+              </div>
             </div>
-            <span class="pill muted">Updated live</span>
-          </div>
-          <div id="offersGrid" class="offers-grid"></div>
+            <p class="panel-lead">Subagents continuously research platforms, verify opportunities, and analyze patterns. Monitor their activity, manage API keys, and review their findings.</p>
+
+            <section class="agent-status-grid">
+              <article class="status-card">
+                <span class="status-label">Orchestrator</span>
+                <strong id="orchestratorStatus">Idle</strong>
+                <small id="orchestratorNote">Not running</small>
+              </article>
+              <article class="status-card">
+                <span class="status-label">Queue stats</span>
+                <strong id="queueStats">—</strong>
+                <small>Jobs pending/completed</small>
+              </article>
+              <article class="status-card">
+                <span class="status-label">Active agents</span>
+                <strong id="activeAgents">0</strong>
+                <small>Researchers, workers, analyzers</small>
+              </article>
+            </section>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Job queue</p>
+                <h2>Recent tasks</h2>
+              </div>
+              <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="pending">Pending</button>
+                <button class="filter-tab" data-filter="running">Running</button>
+                <button class="filter-tab" data-filter="completed">Completed</button>
+              </div>
+            </div>
+            <div id="jobsGrid" class="jobs-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Agent memory</p>
+                <h2>Stored knowledge</h2>
+              </div>
+              <div class="filter-tabs">
+                <button class="filter-tab active" data-memory-filter="all">All</button>
+                <button class="filter-tab" data-memory-filter="opportunity">Opportunities</button>
+                <button class="filter-tab" data-memory-filter="verification">Verifications</button>
+                <button class="filter-tab" data-memory-filter="analysis">Analysis</button>
+              </div>
+            </div>
+            <div id="memoryGrid" class="memory-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">API keys</p>
+                <h2>AI provider credentials</h2>
+              </div>
+              <button id="addKeyBtn" class="secondary-btn">Add API key</button>
+            </div>
+            <div id="apiKeysGrid" class="api-keys-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Agent logs</p>
+                <h2>Activity stream</h2>
+              </div>
+            </div>
+            <div id="agentLogsGrid" class="logs-grid"></div>
+          </section>
         </section>
 
-      <section class="panel alerts-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Signals</p>
-            <h2>Priority monitoring</h2>
-          </div>
-        </div>
-        <div id="alertsGrid" class="alerts-grid"></div>
-      </section>
+        <section id="view-review" class="view-section hidden" data-view-panel="review">
+          <section id="authPanel" class="panel auth-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Worker access</p>
+                <h2>Join the verification desk</h2>
+              </div>
+            </div>
+            <p class="panel-lead">Researchers confirm what public pages say. Reviewers decide if an offer is official, current, and eligible — not whether a loophole exists.</p>
+            <div class="auth-grid">
+              <form id="loginForm" class="auth-form">
+                <h3>Sign in</h3>
+                <input type="email" name="email" placeholder="Email" required />
+                <input type="password" name="password" placeholder="Password" minlength="8" required />
+                <button type="submit" class="primary-btn">Enter workspace</button>
+              </form>
+              <form id="signupForm" class="auth-form">
+                <h3>Create a desk account</h3>
+                <input type="text" name="name" placeholder="Full name" required />
+                <input type="email" name="email" placeholder="Email" required />
+                <input type="password" name="password" placeholder="Password (8+ characters)" minlength="8" required />
+                <select name="role">
+                  <option value="researcher">Researcher</option>
+                  <option value="reviewer">Reviewer</option>
+                  <option value="analyst">Analyst</option>
+                </select>
+                <button type="submit" class="secondary-btn">Create account</button>
+              </form>
+            </div>
+          </section>
 
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Audit</p>
-            <h2>Activity log</h2>
-          </div>
-        </div>
-        <div id="logsGrid" class="alerts-grid"></div>
-      </section>
+          <section id="workspacePanel" class="workspace-shell hidden">
+            <div class="panel workspace-overview">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Worker workspace</p>
+                  <h2 id="workerTitle">Your verification board</h2>
+                </div>
+                <button id="signOutBtn" class="ghost-btn" type="button">Sign out</button>
+              </div>
+              <div id="workspaceSummary" class="workspace-summary"></div>
+            </div>
+            <div class="panel tasks-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Live queue</p>
+                  <h2>Verification pipeline</h2>
+                </div>
+              </div>
+              <div id="taskList" class="task-list"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Watchlists</p>
+                  <h2>Keep a closer eye</h2>
+                </div>
+              </div>
+              <form id="watchlistForm" class="inline-form watchlist-form">
+                <input type="text" name="name" placeholder="Watchlist name, e.g. Student programs" required />
+                <button type="submit" class="secondary-btn">Save watchlist</button>
+              </form>
+              <div id="watchlistGrid" class="chip-row"></div>
+            </div>
+          </section>
+        </section>
       </main>
     </div>
 
@@ -188,7 +325,6 @@
     </div>
 
     <div id="toast" class="toast hidden" aria-live="polite"></div>
-
     <script src="/static/app.js"></script>
   </body>
 </html>

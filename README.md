@@ -1,4 +1,4 @@
-    # Access Intelligence Platform
+    # Verity — public offer intelligence
 
 A professional, legal public-offer monitoring platform for AI tools, SaaS subscriptions, student programs, startup credits, and free-tier promotions.
 
@@ -73,6 +73,17 @@ A dashboard surfaces:
 - category filters
 - offer score and risk signal
 
+### 5. AI-powered agent system (NEW)
+The platform now includes autonomous subagents for research and verification:
+
+- **Researcher Agents**: Discover leads across platforms (Twitter, Reddit, GitHub, Product Hunt, Hacker News)
+- **Worker Agents**: Verify opportunities, check eligibility, gather evidence
+- **Analyzer Agents**: Analyze trends, patterns, and insights from collected data
+- **Orchestrator Engine**: Coordinates all agents, manages job queues, monitors performance
+- **Multi-Provider AI Support**: Supports Anthropic, OpenAI, Groq, and other providers with automatic failover
+- **Agent Memory System**: Stores learnings and context for future reference
+- **Real-time Monitoring**: Dashboard shows agent activity, job queue, and logs in real-time
+
 ## MVP status
 
 This repository contains a working MVP with:
@@ -109,6 +120,13 @@ This repository contains a working MVP with:
 - recommendation engine
 - user segmentation by needs and budgets
 
+### Phase 5: Agent automation (NEW)
+- autonomous research across platforms
+- AI-powered verification and analysis
+- multi-provider API key management
+- real-time agent monitoring dashboard
+- agent memory and learning system
+
 ## Local development
 
 ```bash
@@ -117,7 +135,10 @@ python -m venv .venv
 . ./.venv/Scripts/Activate.ps1
 python -m pip install -r requirements.txt
 python -m pytest -q
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+
+# optional background scanning of official public pages
+$env:VERITY_ENABLE_SCHEDULER = "true"
 ```
 
 Then open:
@@ -125,6 +146,40 @@ Then open:
 - http://localhost:8000/
 - http://localhost:8000/api/health
 - http://localhost:8000/api/offers
+
+## Agent system setup
+
+To use the AI-powered agent system:
+
+1. Add API keys via the Agents tab in the dashboard or via API:
+   ```bash
+   curl -X POST http://localhost:8000/api/ai/keys \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{"provider": "anthropic", "key_name": "My Claude Key", "api_key": "sk-ant-..."}'
+   ```
+
+2. Start the agent orchestrator:
+   ```bash
+   curl -X POST http://localhost:8000/api/agents/start \
+     -H "Authorization: Bearer YOUR_TOKEN"
+   ```
+
+3. Monitor agent activity on the Agents dashboard tab
+
+4. Trigger manual research:
+   ```bash
+   curl -X POST http://localhost:8000/api/agents/research \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{"platform": "twitter"}'
+   ```
+
+Supported AI providers:
+- Anthropic (Claude 3 Haiku, Sonnet, Opus)
+- OpenAI (GPT-4o, GPT-4o Mini)
+- Groq (Llama 3 8B, 70B - free tier)
+- Custom providers (extensible)
 
 ## Safety and ethics
 
