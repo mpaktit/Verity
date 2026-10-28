@@ -9,6 +9,7 @@ from typing import Any, Optional
 
 from app.services.agents import AgentFactory, AgentResult
 from app.services.job_queue import AgentType, JobQueue, JobType, get_job_queue
+from app.services.websocket_manager import get_websocket_manager
 
 
 class OrchestrationStatus(Enum):
@@ -50,6 +51,7 @@ class AgentOrchestrator:
         self.status = OrchestrationStatus.IDLE
         self._running = False
         self._tasks: list[asyncio.Task] = []
+        self.ws_manager = get_websocket_manager()
 
     async def start(self):
         """Start the orchestration engine."""
@@ -167,6 +169,9 @@ class AgentOrchestrator:
             )
             self._log("info", f"Enqueued research job for {platform}: {job_id}")
 
+            # Broadcast job created
+            await self.ws_manager.broadcast_job_update(job_id, "queued", {"platform": platform, "type": "research"})
+
     async def _process_worker_jobs(self):
         """Process pending worker jobs."""
         job = self.queue.dequeue(AgentType.WORKER)
@@ -179,21 +184,41 @@ class AgentOrchestrator:
         self.queue.mark_running(job.id)
         agent_instance.current_job_id = job.id
         agent_instance.last_activity_at = _now()
+        agent_instance.status = "running"
+
+        # Broadcast job started
+        await self.ws_manager.broadcast_job_update(job.id, "running", {"agent_id": agent.agent_id})
 
         try:
             result = await agent.execute(job.payload)
             if result.success:
                 self.queue.mark_completed(job.id, result.data)
                 agent_instance.jobs_completed += 1
+                agent_instance.status = "idle"
                 self._log("info", f"Worker job completed: {job.id}")
+
+                # Broadcast job completed
+                await self.ws_manager.broadcast_job_update(job.id, "completed", result.data)
+
+                # If this was a verification job, broadcast the result
+                if "verification" in result.data:
+                    await self.ws_manager.broadcast_verification_complete(result.data["verification"])
             else:
                 self.queue.mark_failed(job.id, result.error)
                 agent_instance.jobs_failed += 1
+                agent_instance.status = "idle"
                 self._log("error", f"Worker job failed: {job.id} - {result.error}")
+
+                # Broadcast job failed
+                await self.ws_manager.broadcast_job_update(job.id, "failed", {"error": result.error})
         except Exception as e:
             self.queue.mark_failed(job.id, str(e))
             agent_instance.jobs_failed += 1
+            agent_instance.status = "idle"
             self._log("error", f"Worker job exception: {job.id} - {str(e)}")
+
+            # Broadcast job failed
+            await self.ws_manager.broadcast_job_update(job.id, "failed", {"error": str(e)})
         finally:
             agent_instance.current_job_id = None
 

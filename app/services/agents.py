@@ -9,6 +9,8 @@ from typing import Any, Optional
 
 from app.services.ai_provider import get_ai_manager
 from app.services.job_queue import AgentType, JobType
+from app.services.web_scraper import get_scraper, Platform
+from app.services.browser_automation import get_browser_service
 
 
 @dataclass
@@ -79,7 +81,7 @@ class BaseAgent(ABC):
 
 
 class ResearcherAgent(BaseAgent):
-    """Agent that discovers leads across platforms."""
+    """Agent that discovers leads across platforms using real web scraping."""
 
     PLATFORMS = [
         "twitter",
@@ -96,9 +98,10 @@ class ResearcherAgent(BaseAgent):
 
     def __init__(self, agent_id: str):
         super().__init__(agent_id)
+        self.scraper = get_scraper()
 
     async def execute(self, payload: dict) -> AgentResult:
-        """Research platforms for AI access opportunities."""
+        """Research platforms for AI access opportunities using real web scraping."""
         platform = payload.get("platform", "all")
         keywords = payload.get("keywords", ["free trial", "credits", "student", "startup"])
         depth = payload.get("depth", "shallow")
@@ -106,42 +109,37 @@ class ResearcherAgent(BaseAgent):
         self.log("info", f"Starting research on platform: {platform}", {"keywords": keywords, "depth": depth})
 
         try:
-            system_prompt = """You are a research agent specializing in discovering AI and SaaS access opportunities.
-Your task is to identify legitimate public offers such as:
-- Free trials with AI model access
-- Student or education programs
-- Startup credits
-- Partner programs
-- Limited-time promotions
-- Beta access programs
+            opportunities = []
 
-Focus on official, public, and verifiable opportunities. Do not suggest hacks, exploits, or bypass methods."""
+            # If platform is specified, search that platform
+            if platform != "all" and platform in self.PLATFORMS:
+                platform_enum = Platform(platform)
+                for keyword in keywords:
+                    self.log("info", f"Searching {platform} for: {keyword}")
+                    results = await self.scraper.search_platform(platform_enum, keyword, limit=5)
+                    for result in results:
+                        opp = self._convert_to_opportunity(result, platform, keyword)
+                        opportunities.append(opp)
+                        self.remember("opportunity", json.dumps(opp), {"platform": platform, "keyword": keyword})
+            else:
+                # Search all platforms
+                for plat in self.PLATFORMS[:5]:  # Limit to 5 platforms for efficiency
+                    try:
+                        platform_enum = Platform(plat)
+                        for keyword in keywords[:2]:  # Limit keywords per platform
+                            self.log("info", f"Searching {plat} for: {keyword}")
+                            results = await self.scraper.search_platform(platform_enum, keyword, limit=3)
+                            for result in results:
+                                opp = self._convert_to_opportunity(result, plat, keyword)
+                                opportunities.append(opp)
+                                self.remember("opportunity", json.dumps(opp), {"platform": plat, "keyword": keyword})
+                    except Exception as e:
+                        self.log("warning", f"Failed to search {plat}: {str(e)}")
+                        continue
 
-            user_prompt = f"""Research the following for AI/SaaS access opportunities:
-Platform: {platform}
-Keywords: {', '.join(keywords)}
-Search depth: {depth}
-
-Provide a structured response with:
-1. Platform name
-2. Discovered opportunities (title, description, source URL)
-3. Eligibility requirements
-4. Estimated value/reward
-5. Confidence score (0-100)
-6. Verification needed (yes/no)"""
-
-            response = await self.ai_manager.chat_completion(
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                max_tokens=2048,
-            )
-
-            opportunities = self._parse_opportunities(response["content"])
-
-            for opp in opportunities:
-                self.remember("opportunity", json.dumps(opp), {"platform": platform, "discovered_at": _now()})
+            # Use AI to analyze and score the opportunities
+            if opportunities and depth == "deep":
+                opportunities = await self._analyze_with_ai(opportunities)
 
             self.log("info", f"Research completed, found {len(opportunities)} opportunities")
 
@@ -152,12 +150,64 @@ Provide a structured response with:
                     "opportunities": opportunities,
                     "total_found": len(opportunities),
                 },
-                metadata={"model_used": response["model"], "provider": response["provider"]},
+                metadata={"search_depth": depth, "keywords_used": keywords},
             )
 
         except Exception as e:
             self.log("error", f"Research failed: {str(e)}")
             return AgentResult(success=False, data={}, error=str(e))
+
+    def _convert_to_opportunity(self, scraped_content, platform: str, keyword: str) -> dict:
+        """Convert scraped content to opportunity format."""
+        return {
+            "title": scraped_content.title,
+            "description": scraped_content.content[:500] if scraped_content.content else "",
+            "source_url": scraped_content.url,
+            "platform": platform,
+            "keyword_matched": keyword,
+            "author": scraped_content.author,
+            "score": scraped_content.score,
+            "published_at": scraped_content.published_at,
+            "metadata": scraped_content.metadata,
+            "confidence": 50,  # Initial confidence, will be updated by AI analysis
+            "verification_needed": True,
+        }
+
+    async def _analyze_with_ai(self, opportunities: list[dict]) -> list[dict]:
+        """Use AI to analyze and score opportunities."""
+        try:
+            system_prompt = """You are an analysis agent for AI/SaaS access opportunities.
+Analyze the provided opportunities and assign confidence scores (0-100) based on:
+- Relevance to AI/SaaS access
+- Legitimacy and official status
+- Recency
+- Detailed information availability
+
+Return only a JSON array with the same structure but updated confidence scores."""
+
+            opportunities_json = json.dumps(opportunities[:10], indent=2)  # Limit to 10 for token efficiency
+
+            user_prompt = f"""Analyze these opportunities and update their confidence scores:
+{opportunities_json}
+
+Respond with a JSON array containing the updated opportunities."""
+
+            response = await self.ai_manager.chat_completion(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                max_tokens=4096,
+            )
+
+            analyzed = self._parse_opportunities(response["content"])
+            if analyzed and len(analyzed) > 0:
+                return analyzed
+            return opportunities
+
+        except Exception as e:
+            self.log("warning", f"AI analysis failed: {str(e)}")
+            return opportunities
 
     def _parse_opportunities(self, content: str) -> list[dict]:
         """Parse AI response into structured opportunities."""
@@ -179,54 +229,65 @@ Provide a structured response with:
 
 
 class WorkerAgent(BaseAgent):
-    """Agent that verifies leads and checks eligibility."""
+    """Agent that verifies leads using real browser automation."""
 
     def __init__(self, agent_id: str):
         super().__init__(agent_id)
+        self.browser_service = get_browser_service()
 
     async def execute(self, payload: dict) -> AgentResult:
-        """Verify a specific opportunity or lead."""
+        """Verify a specific opportunity using browser automation."""
         opportunity = payload.get("opportunity")
         if not opportunity:
             return AgentResult(success=False, data={}, error="No opportunity provided")
 
-        self.log("info", f"Verifying opportunity: {opportunity.get('title', 'Unknown')}")
+        source_url = opportunity.get("source_url")
+        if not source_url:
+            return AgentResult(success=False, data={}, error="No source URL provided")
+
+        self.log("info", f"Verifying opportunity: {opportunity.get('title', 'Unknown')} at {source_url}")
 
         try:
-            system_prompt = """You are a verification agent for AI/SaaS access opportunities.
-Your task is to:
-1. Verify if the opportunity is still active
-2. Check eligibility requirements
-3. Assess legitimacy and risk
-4. Identify any red flags
-5. Recommend action (apply, monitor, ignore)"""
+            # Initialize browser if needed
+            await self.browser_service.initialize()
 
-            user_prompt = f"""Verify this opportunity:
-Title: {opportunity.get('title')}
-Description: {opportunity.get('description')}
-Source: {opportunity.get('source_url')}
-Requirements: {opportunity.get('eligibility', 'Not specified')}
-
-Provide a structured response with:
-1. Active status (yes/no/uncertain)
-2. Eligibility clarity (clear/ambiguous/unclear)
-3. Legitimacy score (0-100)
-4. Risk level (low/medium/high)
-5. Red flags (list any)
-6. Recommended action
-7. Additional evidence needed"""
-
-            response = await self.ai_manager.chat_completion(
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                max_tokens=2048,
+            # Verify the URL with browser automation
+            verification_result = await self.browser_service.verify_url(
+                url=source_url,
+                wait_for_selector=None,
+                timeout=30000,
+                screenshot=True,
             )
 
-            verification = self._parse_verification(response["content"])
+            # Check for eligibility indicators
+            eligibility_check = await self.browser_service.check_eligibility_page(
+                url=source_url,
+                keywords=["student", "education", "startup", "free trial", "credits", "beta", "discount"],
+            )
 
-            self.remember("verification", json.dumps(verification), {"opportunity_id": opportunity.get("id")})
+            # Analyze with AI for deeper verification
+            ai_analysis = await self._analyze_with_ai(
+                opportunity,
+                verification_result,
+                eligibility_check,
+            )
+
+            verification = {
+                "active": verification_result.success,
+                "status_code": verification_result.status_code,
+                "title": verification_result.title,
+                "eligible": eligibility_check.get("eligible", False),
+                "found_keywords": eligibility_check.get("found_keywords", []),
+                "legitimacy_score": ai_analysis.get("legitimacy_score", 50),
+                "risk_level": ai_analysis.get("risk_level", "medium"),
+                "red_flags": ai_analysis.get("red_flags", []),
+                "recommended_action": ai_analysis.get("recommended_action", "manual_review"),
+                "screenshot_available": verification_result.screenshot is not None,
+                "content_preview": verification_result.content[:500] if verification_result.content else None,
+                "metadata": verification_result.metadata,
+            }
+
+            self.remember("verification", json.dumps(verification), {"source_url": source_url})
 
             self.log("info", f"Verification completed: {verification.get('recommended_action')}")
 
@@ -236,12 +297,52 @@ Provide a structured response with:
                     "opportunity": opportunity,
                     "verification": verification,
                 },
-                metadata={"model_used": response["model"], "provider": response["provider"]},
+                metadata={"verification_method": "browser_automation"},
             )
 
         except Exception as e:
             self.log("error", f"Verification failed: {str(e)}")
             return AgentResult(success=False, data={}, error=str(e))
+
+    async def _analyze_with_ai(self, opportunity: dict, verification_result, eligibility_check: dict) -> dict:
+        """Use AI to analyze verification results."""
+        try:
+            system_prompt = """You are a verification agent for AI/SaaS access opportunities.
+Analyze the verification results and provide:
+1. Legitimacy score (0-100)
+2. Risk level (low/medium/high)
+3. Red flags (list any concerning elements)
+4. Recommended action (apply, monitor, ignore, manual_review)"""
+
+            user_prompt = f"""Analyze this verification:
+Opportunity: {opportunity.get('title')}
+URL: {opportunity.get('source_url')}
+Page accessible: {verification_result.success}
+Status code: {verification_result.status_code}
+Page title: {verification_result.title}
+Eligibility indicators found: {eligibility_check.get('found_keywords', [])}
+Content preview: {verification_result.content[:300] if verification_result.content else 'N/A'}
+
+Provide a JSON response with: legitimacy_score, risk_level, red_flags, recommended_action"""
+
+            response = await self.ai_manager.chat_completion(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                max_tokens=1024,
+            )
+
+            return self._parse_verification(response["content"])
+
+        except Exception as e:
+            self.log("warning", f"AI analysis failed: {str(e)}")
+            return {
+                "legitimacy_score": 50,
+                "risk_level": "medium",
+                "red_flags": [],
+                "recommended_action": "manual_review",
+            }
 
     def _parse_verification(self, content: str) -> dict:
         """Parse AI response into verification data."""

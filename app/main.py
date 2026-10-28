@@ -2,7 +2,7 @@ import threading
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -34,6 +34,7 @@ from app.services.research import (
 from app.services.ai_provider import get_ai_manager, ProviderType
 from app.services.job_queue import get_job_queue, JobType, AgentType, JobStatus
 from app.services.orchestrator import get_orchestrator
+from app.services.websocket_manager import get_websocket_manager, WebSocketMessage
 
 
 def _scheduler_loop(stop_event: threading.Event) -> None:
@@ -267,10 +268,10 @@ async def agents_stop(authorization: str | None = Header(default=None)):
 
 
 @app.post("/api/agents/research")
-async def trigger_research(payload: dict, authorization: str | None = Header(default=None)):
+async def trigger_research(payload: dict | None = None, authorization: str | None = Header(default=None)):
     resolve_token(authorization)
     orchestrator = get_orchestrator()
-    platform = payload.get("platform")
+    platform = (payload or {}).get("platform")
     result = orchestrator.trigger_research(platform)
     return result
 
@@ -398,3 +399,26 @@ async def list_ai_models(authorization: str | None = Header(default=None)):
             for m in models
         ]
     }
+
+
+# WebSocket endpoint for real-time updates
+@app.websocket("/ws/{channel}")
+async def websocket_endpoint(websocket: WebSocket, channel: str):
+    """WebSocket endpoint for real-time dashboard updates."""
+    manager = get_websocket_manager()
+    await manager.connect(websocket, channel)
+
+    try:
+        while True:
+            # Keep connection alive and handle incoming messages
+            data = await websocket.receive_text()
+            # Echo back or process client messages if needed
+            await manager.send_personal_message(
+                websocket,
+                WebSocketMessage(type="echo", data={"received": data}),
+            )
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+        manager.disconnect(websocket)

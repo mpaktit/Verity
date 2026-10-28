@@ -50,6 +50,24 @@ class Job:
     created_at: str
     updated_at: str
 
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "job_type": self.job_type.value,
+            "agent_type": self.agent_type.value,
+            "payload": self.payload,
+            "status": self.status.value,
+            "priority": self.priority,
+            "retry_count": self.retry_count,
+            "max_retries": self.max_retries,
+            "result": self.result,
+            "error_message": self.error_message,
+            "started_at": self.started_at,
+            "completed_at": self.completed_at,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+
 
 class JobQueue:
     """Manages job queue with priority scheduling and retry logic."""
@@ -227,24 +245,6 @@ class JobQueue:
             created_at=row["created_at"],
             updated_at=row["updated_at"],
         )
-
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "job_type": self.job_type.value,
-            "agent_type": self.agent_type.value,
-            "payload": self.payload,
-            "status": self.status.value,
-            "priority": self.priority,
-            "retry_count": self.retry_count,
-            "max_retries": self.max_retries,
-            "result": self.result,
-            "error_message": self.error_message,
-            "started_at": self.started_at,
-            "completed_at": self.completed_at,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-        }
 
 
 class JobExecutor:

@@ -607,6 +607,7 @@ async function loadAgentStatus() {
     renderAgentStatus(status);
   } catch (error) {
     console.error('Failed to load agent status:', error);
+    renderAgentStatus({ status: 'idle', queue: { pending: 0, completed: 0 }, agents: [] });
   }
 }
 
@@ -645,6 +646,7 @@ async function loadJobs(filter = 'all') {
     renderJobs(response.jobs);
   } catch (error) {
     console.error('Failed to load jobs:', error);
+    renderJobs([]);
   }
 }
 
@@ -679,6 +681,7 @@ async function loadMemory(filter = 'all') {
     renderMemory(response.memories);
   } catch (error) {
     console.error('Failed to load memory:', error);
+    renderMemory([]);
   }
 }
 
@@ -712,6 +715,7 @@ async function loadApiKeys() {
     renderApiKeys(response.keys);
   } catch (error) {
     console.error('Failed to load API keys:', error);
+    renderApiKeys([]);
   }
 }
 
@@ -746,6 +750,7 @@ async function loadAgentLogs(level = null) {
     renderAgentLogs(response.logs);
   } catch (error) {
     console.error('Failed to load agent logs:', error);
+    renderAgentLogs([]);
   }
 }
 
@@ -850,18 +855,18 @@ function bindAgentControls() {
 }
 
 async function initAgentView() {
+  if (!getStoredToken()) {
+    showToast('Sign in to access agent controls');
+    setView('review');
+    return;
+  }
+
   await loadAgentStatus();
   await loadJobs();
   await loadMemory();
   await loadApiKeys();
   await loadAgentLogs();
   bindAgentControls();
-
-  // Auto-refresh every 10 seconds
-  setInterval(async () => {
-    await loadAgentStatus();
-    await loadAgentLogs();
-  }, 10000);
 }
 
 function bindScanButton() {
@@ -896,11 +901,16 @@ async function init() {
   await loadDashboard();
   await loadWorkspace();
 
-  // Initialize agent view when tab is selected
+  // Initialize agent view only when tab is selected AND user is authenticated
   document.querySelectorAll('.nav-item').forEach(button => {
     button.addEventListener('click', () => {
       if (button.dataset.view === 'agents') {
-        initAgentView();
+        if (getStoredToken()) {
+          initAgentView();
+        } else {
+          showToast('Sign in to access agent controls');
+          setView('review');
+        }
       }
     });
   });
